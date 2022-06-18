@@ -38,6 +38,7 @@
 *.exe
 *.out
 *.app
+*.elf
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -167,6 +168,9 @@ Temporary Items
 
 # Tags
 TAGS
+GPATH
+GRTAGS
+GTAGS
 
 # CLion project
 .idea
