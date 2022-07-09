@@ -286,12 +286,14 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
   if (constraint == nullptr)
     return;
 
+#if 0
   // constraint must be registered in allocated expressions let's take a look what is there
   std::cerr << "======================================== ALLOCATED EXPRESSIONS SO FAR ======================================" << std::endl;
   for (const auto& [key, value] : allocatedExpressions) {
     std::cout << '[' << key->toString() << "] = " << value->toString() << ";\n";
   }
   std::cerr << "======================================== ALLOCATED EXPRESSIONS SO FAR ======================================" << std::endl;
+#endif
 
   g_solver->addJcc(allocatedExpressions.at(constraint), taken != 0, site_id);
 }
