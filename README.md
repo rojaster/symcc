@@ -29,12 +29,9 @@ Alternatively, see below for using the provided Dockerfile, or the file
 `util/quicktest.sh` for exact steps to perform under Ubuntu (or use with the
 provided Vagrant file).
 
-Make sure to pull the QSYM code:
-
-```
-$ git submodule init
-$ git submodule update
-```
+> IT DOESN'T REQUIRE QSYM SOURCES ANYMORE. NO NEED TO PULL THEM. 
+>
+> ALL MANDATORY DEPENDENCIES BEEN COPIED INSIDE.
 
 Note that it is not necessary or recommended to build the QSYM submodule - our
 build system will automatically extract the right source files and include them
@@ -45,7 +42,7 @@ it:
 
 ```
 $ cmake -G Ninja -DQSYM_BACKEND=ON /path/to/compiler/sources
-$ ninja check
+$ cmake --build .
 ```
 
 If LLVM is installed in a non-standard location, add the CMake parameter
@@ -149,8 +146,6 @@ Docker image enables optional C++ support from source, so creating
 the image can take quite some time!)
 
 ```
-$ git submodule init
-$ git submodule update
 $ docker build -t symcc .
 $ docker run -it --rm symcc
 ```
@@ -180,7 +175,22 @@ every change to SymCC (which is, in principle the right thing to do), whereas in
 many cases it is sufficient to let the build system figure out what to rebuild
 (and recompile, e.g., libc++ only when necessary).
 
+### Development & Test in docker environment 
+
+Building only required stage `builder_qsym` for development and testing:
+
+```
+docker build --target builder_qsym -t <label:ver> -f Dockerfile .
+docker run -it --rm -v $PWD:/symcc_source <label:ver> /bin/bash
+```
+Here we built the necessary stage and ran a new container, mounting the source 
+folder from the current directory as volume into the container where sources are expected.
+
+After that we are ready for development and testing our ideas.
+
 ## FAQ / BUGS / TODOs
+
+> You might find [`TODO.md`](TODO.md) file useful if you looking for **TODOs**
 
 ### Why is SymCC only exploring one path and not all paths?
 
@@ -193,6 +203,9 @@ see [issue #14](https://github.com/eurecom-s3/symcc/issues/14)
 There are multiple possible reasons:
 
 #### QSym backend performs pruning
+
+> QSYM is no more in use here. All necessary files are copied directly into
+> qsym_backend folder.
 
 When built with the QSym backend exploration (e.g., loops) symcc is
 subject to path pruning, this is part of the optimizations that makes
@@ -278,7 +291,7 @@ SymCC. If not, see <https://www.gnu.org/licenses/>.
 The following pieces of software have additional or alternate copyrights,
 licenses, and/or restrictions:
 
-| Program | Directory                   |
-| ---     | ---                         |
-| QSYM    | `runtime/qsym_backend/qsym` |
+| Program | Directory                   | Status |
+| ---     | ---                         | --- |
+| QSYM    | `runtime/qsym_backend/`     | Certain files been copied directly    |
 

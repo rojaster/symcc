@@ -20,20 +20,23 @@ FROM ubuntu:20.04 AS builder
 # Install dependencies
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        cargo \
         clang-10 \
         cmake \
         g++ \
         git \
         libz3-dev \
+        curl \
         llvm-10-dev \
         llvm-10-tools \
         ninja-build \
-        python \
+        python3 \
         python3-pip \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 RUN pip3 install lit
+
+# Install Rust from rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 # Build AFL.
 RUN git clone https://github.com/AFLplusplus/AFLplusplus.git -b stable afl \
@@ -60,7 +63,7 @@ RUN cmake -G Ninja \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DZ3_TRUST_SYSTEM_VERSION=on \
         /symcc_source \
-    && ninja check
+    && cmake --build .
 
 #
 # Build libc++ with SymCC using the simple backend
@@ -91,8 +94,8 @@ RUN cmake -G Ninja \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DZ3_TRUST_SYSTEM_VERSION=on \
         /symcc_source \
-    && ninja check \
-    && cargo install --path /symcc_source/util/symcc_fuzzing_helper
+    && cmake --build . \
+    && /root/.cargo/bin/cargo install --path /symcc_source/util/symcc_fuzzing_helper
 
 #
 # The final image
@@ -119,7 +122,7 @@ COPY util/pure_concolic_execution.sh /symcc_build/
 COPY --from=builder_qsym /libcxx_symcc_install /libcxx_symcc_install
 COPY --from=builder_qsym /afl /afl
 
-ENV PATH /symcc_build:$PATH
+ENV PATH /symcc_build:/root/.cargo/bin:$PATH
 ENV AFL_PATH /afl
 ENV AFL_CC clang-10
 ENV AFL_CXX clang++-10
