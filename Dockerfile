@@ -36,7 +36,7 @@ RUN apt-get update \
 RUN pip3 install lit
 
 # Build AFL.
-RUN git clone -b v2.56b https://github.com/google/AFL.git afl \
+RUN git clone https://github.com/AFLplusplus/AFLplusplus.git -b stable afl \
     && cd afl \
     && make
 
@@ -49,12 +49,6 @@ COPY . /symcc_source
 
 # Init submodules if they are not initialiazed yet
 WORKDIR /symcc_source
-RUN if git submodule status | grep "^-">/dev/null ; then \
-    echo "Initializing submodules"; \
-    git submodule init; \
-    git submodule update; \
-    fi
-
 
 #
 # Build SymCC with the simple backend
@@ -87,7 +81,6 @@ RUN export SYMCC_REGULAR_LIBCXX=yes SYMCC_NO_SYMBOLIC_INPUT=yes \
   && ninja distribution \
   && ninja install-distribution
 
-
 #
 # Build SymCC with the Qsym backend
 #
@@ -101,11 +94,12 @@ RUN cmake -G Ninja \
     && ninja check \
     && cargo install --path /symcc_source/util/symcc_fuzzing_helper
 
-
 #
 # The final image
+# that might be used for testing in CI
+# for developer image use stage above
 #
-FROM ubuntu:20.04
+FROM ubuntu:20.04 AS production
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -130,8 +124,3 @@ ENV AFL_PATH /afl
 ENV AFL_CC clang-10
 ENV AFL_CXX clang++-10
 ENV SYMCC_LIBCXX_PATH=/libcxx_symcc_install
-
-USER ubuntu
-WORKDIR /home/ubuntu
-COPY sample.cpp /home/ubuntu/
-RUN mkdir /tmp/output

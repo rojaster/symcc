@@ -14,26 +14,6 @@
 
 # Build the parts of the Qsym backend that are relevant for us
 
-set(QSYM_SOURCE_DIR "qsym/qsym/pintool")
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
-  COMMAND python gen_expr.py ${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
-  COMMENT "Generating Qsym's expr__gen.cpp"
-  VERBATIM
-  DEPENDS
-  ${QSYM_SOURCE_DIR}/codegen/expr.cpp
-  ${QSYM_SOURCE_DIR}/codegen/gen_expr.py)
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
-  COMMAND python gen_expr_builder.py ${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
-  COMMENT "Generating Qsym's expr__gen.cpp"
-  VERBATIM
-  DEPENDS
-  ${QSYM_SOURCE_DIR}/codegen/expr_builder.cpp
-  ${QSYM_SOURCE_DIR}/codegen/gen_expr_builder.py)
-
 find_package(LLVM REQUIRED CONFIG)
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
@@ -56,19 +36,19 @@ configure CMake with -DZ3_TRUST_SYSTEM_VERSION=on (see also docs/Configuration.t
 endif()
 
 add_library(SymRuntime SHARED
-  ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
-  ${QSYM_SOURCE_DIR}/expr_cache.cpp
-  ${QSYM_SOURCE_DIR}/expr_evaluate.cpp
-  ${QSYM_SOURCE_DIR}/solver.cpp
-  ${QSYM_SOURCE_DIR}/dependency.cpp
-  ${QSYM_SOURCE_DIR}/logging.cpp
-  ${QSYM_SOURCE_DIR}/afl_trace_map.cpp
-  ${QSYM_SOURCE_DIR}/allocation.cpp
-  ${QSYM_SOURCE_DIR}/call_stack_manager.cpp
-  ${QSYM_SOURCE_DIR}/third_party/llvm/range.cpp
-  ${QSYM_SOURCE_DIR}/third_party/xxhash/xxhash.cpp
-  ${SHARED_RUNTIME_SOURCES}
+  expr.cpp
+  expr_builder.cpp
+  expr_cache.cpp
+  expr_evaluate.cpp
+  solver.cpp
+  dependency.cpp
+  logging.cpp
+  afl_trace_map.cpp
+  allocation.cpp
+  call_stack_manager.cpp
+  range.cpp
+  xxhash.cpp
+  ${SHARED_RUNTIME_SOURCES}  
   Runtime.cpp)
 
 target_include_directories(SymRuntime PRIVATE
@@ -86,7 +66,7 @@ target_link_libraries(SymRuntime ${Z3_LIBRARIES} ${QSYM_LLVM_DEPS})
 
 # We use std::filesystem, which has been added in C++17. Before its official
 # inclusion in the standard library, Clang shipped the feature first in
-# libc++experimental and later in libc++fs; GCC used to require libstdc++fs. We
+# libc++experimental and later     in libc++fs; GCC used to require libstdc++fs. We
 # make no attempt to support those older compiler versions, with one exception:
 # some current LTS distributions ship a GCC that requires libstdc++fs for
 # std::filesystem - we catch this case in order to enable users of such systems
