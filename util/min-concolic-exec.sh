@@ -15,13 +15,13 @@ function usage() {
     echo "initial inputs cover all required input lengths."
 }
 
-while getopts "i:o:" opt; do
+while getopts "i:a:" opt; do
     case "$opt" in
         i)
             in=$OPTARG
             ;;
-        o)
-            out=$OPTARG
+        a) 
+            adir=$OPTARG
             ;;
         *)
             usage
@@ -29,9 +29,11 @@ while getopts "i:o:" opt; do
             ;;
     esac
 done
+
 shift $((OPTIND-1))
 target=$@
 timeout="timeout -k 5 90"
+
 
 if [[ ! -v in ]]; then
     echo "Please specify the input directory!"
@@ -39,13 +41,41 @@ if [[ ! -v in ]]; then
     exit 1
 fi
 
+# Using this script we are interested in concolic execution, so set the variable
+export SYMCC_PURE_CONCOLIC=1
+
+# Some tmp files used by symcc to monitor progress. Refrese these files.
+rm ./corpus_counters.stats
+touch ./corpus_counters.stats
+
+rm ./prev_1s.txt
+touch ./prev_1s.txt
+
+rm ./prev_0s.txt
+touch ./prev_0s.txt
+
+rm ./trace_maps.txt
+touch ./trace_maps.txt
+
+
 # Create the work environment
 work_dir=$(mktemp -d)
 mkdir $work_dir/{next,symcc_out}
 touch $work_dir/analyzed_inputs
-if [[ -v out ]]; then
-    mkdir -p $out
-fi
+
+rm -rf ${adir}
+mkdir ${adir}
+EXPLORED_PATHS=${adir}/explored_paths.txt
+PATH_MODELS=${adir}/path_models.txt
+SYMCC_LEGIT_FILES=${adir}/legit-files
+
+touch ${EXPLORED_PATHS}
+touch ${PATH_MODELS}
+mkdir ${SYMCC_LEGIT_FILES}
+
+#out=${adir}/out
+out=${THE_OUT_DIR}
+mkdir ${out} || true
 
 function cleanup() {
     rm -rf $work_dir
@@ -55,6 +85,7 @@ trap cleanup EXIT
 
 # Copy all files in the source directory to the destination directory, renaming
 # them according to their hash.
+global_file_counter=0
 function copy_with_unique_name() {
     local source_dir="$1"
     local dest_dir="$2"
@@ -63,6 +94,8 @@ function copy_with_unique_name() {
         local f
         for f in $source_dir/*; do
             local dest="$dest_dir/$(sha256sum $f | cut -d' ' -f1)"
+            #dest="$dest_dir/filenum-${global_file_counter}"
+            #global_file_counter=$((global_file_counter+1))
             cp "$f" "$dest"
         done
     fi
@@ -70,8 +103,10 @@ function copy_with_unique_name() {
 
 # Copy files from the source directory into the next generation.
 function add_to_next_generation() {
+    echo "Copying ${1}"
     local source_dir="$1"
     copy_with_unique_name "$source_dir" "$work_dir/next"
+    echo "Done copying\n"
 }
 
 # If an output directory is set, copy the files in the source directory there.
@@ -107,6 +142,7 @@ export SYMCC_OUTPUT_DIR=$work_dir/symcc_out
 export SYMCC_ENABLE_LINEARIZATION=1
 # export SYMCC_AFL_COVERAGE_MAP=$work_dir/map
 
+
 # Run generation after generation until we don't generate new inputs anymore
 gen_count=0
 while true; do
@@ -115,14 +151,21 @@ while true; do
     mv $work_dir/{next,cur}
     mkdir $work_dir/next
 
+    echo "Checking size of symcc output dir"
+    ls -la ${SYMCC_OUTPUT_DIR}
+    echo "done checking"
     # Run it (or wait if there's nothing to run on)
+    # Lets cleanup output directory
+    rm -rf ${SYMCC_OUTPUT_DIR} && mkdir ${SYMCC_OUTPUT_DIR}
     if [ -n "$(ls -A $work_dir/cur)" ]; then
         echo "Generation $gen_count..."
 
+        cp -rf $work_dir/cur ${adir}/${gen_count}
         for f in $work_dir/cur/*; do
             echo "Running on $f"
             if [[ "$target " =~ " @@ " ]]; then
-                env SYMCC_INPUT_FILE=$f $timeout ${target[@]/@@/$f} >/dev/null 2>&1
+                #env SYMCC_EXPLORED_PATHS=explored_paths.txt SYMCC_INPUT_FILE=$f $timeout ${target[@]/@@/$f}  >/dev/null 2>&1
+                env SYMCC_LEGIT_FILES=${SYMCC_LEGIT_FILES} SYMCC_PATH_MODELS=${PATH_MODELS} SYMCC_EXPLORED_PATHS=${EXPLORED_PATHS} SYMCC_INPUT_FILE=$f $timeout ${target[@]/@@/$f} 
             else
                 $timeout $target <$f >/dev/null 2>&1
             fi
@@ -132,13 +175,35 @@ while true; do
             maybe_export $work_dir/symcc_out
             echo $(basename $f) >> $work_dir/analyzed_inputs
             rm -f $f
+            #rm -rf ${SYMCC_OUTPUT_DIR} && mkdir ${SYMCC_OUTPUT_DIR}
         done
-
+        
         rm -rf $work_dir/cur
+
+        #break
         gen_count=$((gen_count+1))
     else
-        echo "Finished analysis"
-        rmdir $work_dir/cur
+        echo "No more inputs, breaking"
         break
+        #rmdir $work_dir/cur
+        #sleep 5
     fi
+ 
+    echo "--- iteration" >> ${adir}/tmps-1.txt
+    #cat ./corpus_counters.stats | grep "0" | wc -l >> ${adir}/tmps-1.txt
+    echo ">>> Generation ${gen_count}" >> ${adir}/tmps-1.txt
+    cat ./corpus_counters.stats >> ${adir}/tmps-1.txt
+    cp corpus_counters.stats ${adir}/generation-${gen_count}.stats
+    ls -la ${out} | wc -l >> ${adir}/tmps-1.txt
+    #echo "Next dir: ${work_dir}/next"
+    #ls -la ${work_dir}/next
+    #sleep 4
+
 done
+
+echo "Completed execution"
+total_files=$(ls -l ${out} | wc -l)
+echo "Total inputs found: ${total_files}"
+
+total_paths=$(ls -l ${SYMCC_LEGIT_FILES} | wc -l)
+echo "Total unique paths executed: ${total_paths}"
