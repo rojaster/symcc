@@ -155,6 +155,7 @@ void _sym_initialize(void) {
             perror("Failed to reopen stdin");
             exit(-1);
         }
+        std::cerr << "Saving STDIN into " << g_config.inputFile << std::endl;
     }
     std::ifstream ifs(g_config.inputFile, std::ios::in | std::ios::binary);
     if (ifs.fail()) {
@@ -162,6 +163,7 @@ void _sym_initialize(void) {
         exit(-1);
     }
     std::vector<UINT8> input(std::istreambuf_iterator<char>(ifs), {});
+    std::cerr << "Read input data from " << g_config.inputFile << std::endl;
 
     g_z3_context = new z3::context{};
     g_solver = new Solver(input, g_config.outputDir, g_config.aflCoverageMap);

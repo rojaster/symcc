@@ -42,14 +42,12 @@ fn insert_input_file<S: AsRef<OsStr>, P: AsRef<Path>>(
 
 /// A coverage map as used by AFL.
 pub struct AflMap {
-    //data: [u8; 65536],
     data: Vec<u8>
 }
 
 impl AflMap {
     /// Create an empty map.
     pub fn new() -> AflMap {
-        //AflMap { data: [0; 65536] }
         AflMap { data: Vec::new() }
     }
 

@@ -187,13 +187,11 @@ class DependencyForest {
     };
 
     reference find(size_type index) {
-        if (forest_.size() <= index)
-            forest_.resize(index + 1);
-
-        if (forest_[index] == NULL)
+        if (forest_[index] == nullptr) {
             forest_[index] = std::make_shared<value_type>();
+        }
 
-        assert(forest_[index] != NULL);
+        assert(forest_[index] != nullptr);
         return forest_[index];
     }
 
