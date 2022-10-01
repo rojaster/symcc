@@ -41,7 +41,6 @@ add_library(SymRuntime SHARED
   expr_cache.cpp
   expr_evaluate.cpp
   solver.cpp
-  dependency.cpp
   logging.cpp
   afl_trace_map.cpp
   allocation.cpp

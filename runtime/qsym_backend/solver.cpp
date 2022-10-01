@@ -79,20 +79,21 @@ inline bool isEqual(ExprRef e, bool taken) {
 
 } // namespace
 
-Solver::Solver(const std::string input_file, const std::string out_dir,
+Solver::Solver(const std::vector<UINT8>& ibuf, const std::string out_dir,
                const std::string bitmap)
-    : input_file_(input_file), inputs_(), out_dir_(out_dir),
-      context_(*g_z3_context), solver_(z3::solver(context_, "QF_BV")),
-      num_generated_(0), trace_(bitmap), last_interested_(false),
-      syncing_(false), start_time_(getTimeStamp()), solving_time_(0),
-      last_pc_(0), dep_forest_() {
+    : inputs_(ibuf), out_dir_(out_dir), context_(*g_z3_context),
+      solver_(z3::solver(context_, "QF_BV")), num_generated_(0), trace_(bitmap),
+      last_interested_(false), syncing_(false), start_time_(getTimeStamp()),
+      solving_time_(0), last_pc_(0), dep_forest_(ibuf.size() + 1) {
     // Set timeout for solver
     z3::params p(context_);
     p.set(":timeout", kSolverTimeout);
     solver_.set(p);
 
-    checkOutDir();
-    readInput();
+    // @Info(alekum 29/09/2022) We know that forest size is not growing more
+    // than size of the input in worst case scenario.
+    // Change if memory is a bottleneck(rarely it is going to be)
+    // dep_forest_.resize(inputs_.size() + 1);
 }
 
 void Solver::push() { solver_.push(); }
@@ -183,7 +184,7 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
 
 #if 0
   std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED CONSTRAINT ==================================\n";
-  dep_forest_.printForest(std::cerr);
+  dep_forest_.dump(std::cerr);
   std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED CONSTRAINT ==================================\n\n";
 #endif
 }
@@ -267,32 +268,6 @@ void Solver::solveAll(ExprRef e, llvm::APInt val) {
 UINT8 Solver::getInput(ADDRINT index) {
     assert(index < inputs_.size());
     return inputs_[index];
-}
-
-void Solver::checkOutDir() {
-    // skip if there is no out_dir
-    if (out_dir_.empty()) {
-        LOG_INFO("Since output directory is not set, use stdout\n");
-        return;
-    }
-
-    struct stat info;
-    if (stat(out_dir_.c_str(), &info) != 0 || !(info.st_mode & S_IFDIR)) {
-        LOG_FATAL("No such directory\n");
-        exit(-1);
-    }
-}
-
-void Solver::readInput() {
-    std::ifstream ifs(input_file_, std::ifstream::in | std::ifstream::binary);
-    if (ifs.fail()) {
-        LOG_FATAL("Cannot open an input file\n");
-        exit(-1);
-    }
-
-    char ch;
-    while (ifs.get(ch))
-        inputs_.push_back((UINT8)ch);
 }
 
 std::vector<UINT8> Solver::getConcreteValues() {

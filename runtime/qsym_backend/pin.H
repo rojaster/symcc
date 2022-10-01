@@ -21,8 +21,8 @@
 //
 
 #include <cstdint>
-#include <string>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -36,10 +36,11 @@ typedef uint64_t __uint64;
 typedef uintptr_t ADDRINT;
 
 /// Return the hex representation of a number.
-template<typename T> string hexstr(T arg) {
-  stringstream stream;
-  stream << hex << arg;
-  return stream.str();
+template <typename T>
+string hexstr(T arg) {
+    stringstream stream;
+    stream << hex << arg;
+    return stream.str();
 }
 
 #define decstr(x) to_string(x)

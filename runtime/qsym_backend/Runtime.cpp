@@ -80,8 +80,6 @@ std::atomic_flag g_initialized = ATOMIC_FLAG_INIT;
 /// The file that contains out input.
 std::string inputFileName;
 
-void deleteInputFile() { std::remove(inputFileName.c_str()); }
-
 /// A mapping of all expressions that we have ever received from Qsym to the
 /// corresponding shared pointers on the heap.
 ///
@@ -140,41 +138,33 @@ void _sym_initialize(void) {
 
     // Qsym requires the full input in a file
     if (g_config.inputFile.empty()) {
-        std::cerr
-            << "Reading program input until EOF (use Ctrl+D in a terminal)..."
-            << std::endl;
-        std::istreambuf_iterator<char> in_begin(std::cin), in_end;
-        std::vector<char> inputData(in_begin, in_end);
-        inputFileName = std::tmpnam(nullptr);
-        std::ofstream inputFile(inputFileName, std::ios::trunc);
-        std::copy(inputData.begin(), inputData.end(),
-                  std::ostreambuf_iterator<char>(inputFile));
-        inputFile.close();
+        g_config.inputFile =
+            (fs::path(g_config.outputDir) / "stdinXXXXXX").string();
 
-#ifdef DEBUG_RUNTIME
-        std::cerr << "Loaded input:" << std::endl;
-        std::copy(inputData.begin(), inputData.end(),
-                  std::ostreambuf_iterator<char>(std::cerr));
-        std::cerr << std::endl;
-#endif
+        std::ofstream ofs(g_config.inputFile, std::ios::out | std::ios::binary);
+        if (ofs.fail()) {
+            perror("Cannot open an output file to save stdin\n");
+            exit(-1);
+        }
+        // @Info(alekum): is it good?
+        // if there is a way to copy symbols from stdin buffer and let re-read
+        // them after by next std::cin call...change this...
+        ofs << std::cin.rdbuf();
 
-        atexit(deleteInputFile);
-
-        // Restore some semblance of standard input
-        auto* newStdin = freopen(inputFileName.c_str(), "r", stdin);
-        if (newStdin == nullptr) {
+        if (!std::freopen(g_config.inputFile.c_str(), "r", stdin)) {
             perror("Failed to reopen stdin");
             exit(-1);
         }
-    } else {
-        inputFileName = g_config.inputFile;
-        std::cerr << "Making data read from " << inputFileName << " as symbolic"
-                  << std::endl;
     }
+    std::ifstream ifs(g_config.inputFile, std::ios::in | std::ios::binary);
+    if (ifs.fail()) {
+        perror("Cannot open an input file\n");
+        exit(-1);
+    }
+    std::vector<UINT8> input(std::istreambuf_iterator<char>(ifs), {});
 
     g_z3_context = new z3::context{};
-    g_solver =
-        new Solver(inputFileName, g_config.outputDir, g_config.aflCoverageMap);
+    g_solver = new Solver(input, g_config.outputDir, g_config.aflCoverageMap);
     g_expr_builder = g_config.pruning ? PruneExprBuilder::create()
                                       : SymbolicExprBuilder::create();
 }

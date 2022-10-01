@@ -15,6 +15,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(SymbolicCompiler)
 set(CMAKE_CXX_STANDARD 17)
+
 option(QSYM_BACKEND "Use the Qsym backend instead of our own" OFF)
 option(TARGET_32BIT "Make the compiler work correctly with -m32" OFF)
 

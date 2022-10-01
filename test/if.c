@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Failed to read x\n");
         return -1;
     }
-    fprintf(stderr, "%d\n", x);
-    fprintf(stderr, "%d\n", foo(x, 7));
+    fprintf(stderr, "X = %d\n", x);
+    fprintf(stderr, "foo(x,7) = %d\n", foo(x, 7));
     return 0;
 }

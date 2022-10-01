@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <unordered_set>
@@ -12,15 +13,12 @@
 #include <z3++.h>
 
 #include "common.h"
-#include "dependency.h"
 #include "range.h"
 
 // XXX: need to change into non-global variable?
 namespace qsym {
 
 extern z3::context* g_z3_context;
-
-constexpr INT32 kMaxDepth = 100;
 
 enum Kind {
     Bool,     // 0
@@ -112,28 +110,30 @@ inline std::shared_ptr<T> castAsNonNull(ExprRef e) {
 template <class T>
 class DependencyTree {
   public:
-    using Node = std::shared_ptr<T>;
-    using NodesVector = std::vector<Node>;
+    using value_type = T;
+    using node_type = std::shared_ptr<value_type>;
+    using nodes_vector_type = std::vector<node_type>;
+    using dependency_set_type = DependencySet;
 
-    void addNode(Node node) {
-        DependencySet* deps = &node->getDeps();
+    void addNode(node_type node) {
+        dependency_set_type* deps = &node->getDeps();
         nodes_.push_back(node);
         deps_.insert(deps->begin(), deps->end());
     }
 
     void merge(const DependencyTree<T>& other) {
-        const DependencySet& other_deps = other.getDependencies();
-        const NodesVector& other_nodes = other.getNodes();
+        const dependency_set_type& other_deps = other.getDependencies();
+        const nodes_vector_type& other_nodes = other.getNodes();
 
         nodes_.insert(nodes_.end(), other_nodes.begin(), other_nodes.end());
         deps_.insert(other_deps.begin(), other_deps.end());
     }
 
-    const DependencySet& getDependencies() const { return deps_; }
+    const dependency_set_type& getDependencies() const { return deps_; }
 
-    const NodesVector& getNodes() const { return nodes_; }
+    const nodes_vector_type& getNodes() const { return nodes_; }
 
-    void printTree(std::ostream& os = std::cerr) {
+    void dump(std::ostream& os = std::cerr) {
         os << "\tnodes = [\n";
         for (const auto& sptr_DN : nodes_) {
             os << "\t\t" << sptr_DN->toString() << '\n';
@@ -147,35 +147,48 @@ class DependencyTree {
     }
 
   private:
-    NodesVector nodes_;
-    DependencySet deps_;
+    nodes_vector_type nodes_;
+    dependency_set_type deps_;
 };
 
 template <class T>
 class DependencyForest {
   public:
-    std::shared_ptr<DependencyTree<T>> find(size_t index) {
+    using value_type = DependencyTree<T>;
+    using reference = std::shared_ptr<value_type>;
+    using size_type = size_t;
+    using trees_vector_type = std::vector<reference>;
+    using dependency_set_type = DependencySet;
+
+    constexpr explicit DependencyForest(size_type size) : forest_(size){};
+    constexpr DependencyForest() noexcept = default;
+    constexpr DependencyForest(const DependencyForest&) noexcept = delete;
+    constexpr DependencyForest(DependencyForest&&) noexcept = delete;
+    constexpr DependencyForest& operator=(const DependencyForest&) = delete;
+    constexpr DependencyForest& operator=(DependencyForest&&) = delete;
+
+    reference find(size_type index) {
         if (forest_.size() <= index)
             forest_.resize(index + 1);
 
         if (forest_[index] == NULL)
-            forest_[index] = std::make_shared<DependencyTree<T>>();
+            forest_[index] = std::make_shared<value_type>();
 
         assert(forest_[index] != NULL);
         return forest_[index];
     }
 
     void addNode(std::shared_ptr<T> node) {
-        DependencySet* deps = &node->getDeps();
-        std::shared_ptr<DependencyTree<T>> tree = NULL;
-        for (const size_t& index : *deps) {
-            std::shared_ptr<DependencyTree<T>> other_tree = find(index);
+        dependency_set_type* deps = &node->getDeps();
+        reference tree = NULL;
+        for (const size_type& index : *deps) {
+            reference other_tree = find(index);
             if (tree == NULL)
                 tree = other_tree;
             else if (tree != other_tree) {
                 tree->merge(*other_tree);
                 // Update existing reference
-                for (const size_t& index : other_tree->getDependencies())
+                for (const size_type& index : other_tree->getDependencies())
                     forest_[index] = tree;
             }
             forest_[index] = tree;
@@ -183,21 +196,27 @@ class DependencyForest {
         tree->addNode(node);
     }
 
-    void printForest(std::ostream& os = std::cerr) {
+    void dump(std::ostream& os = std::cerr) {
         // Naming is absolutely terrible with these smart pointers....
         // never know whether it is raw ptr, some ref, or sptr
-        size_t idx = 0;
+        size_type idx = 0;
         for (const auto& sptr_DT : forest_) {
             os << "DT[index=" << idx << "] :: {\n";
             if (sptr_DT)
-                sptr_DT->printTree(os);
+                sptr_DT->dump(os);
             ++idx;
             os << "}\n";
         }
     }
 
+    constexpr size_type size() const noexcept { return forest_.size(); }
+    constexpr bool empty() const noexcept { return forest_.empty(); }
+    constexpr void resize(size_type sz) { forest_.resize(sz); }
+    constexpr void reserve(size_type sz) { forest_.reserve(sz); }
+    constexpr void clear() noexcept { forest_.clear(); }
+
   private:
-    std::vector<std::shared_ptr<DependencyTree<T>>> forest_;
+    trees_vector_type forest_;
 };
 
 class Expr {
@@ -430,18 +449,6 @@ class Expr {
     virtual ExprRef evaluateImpl() = 0;
 
 }; // class Expr
-
-struct ExprRefHash {
-    XXH32_hash_t operator()(const ExprRef e) const {
-        return const_pointer_cast<Expr>(e)->hash();
-    }
-};
-
-struct ExprRefEqual {
-    bool operator()(const ExprRef l, const ExprRef r) const {
-        return l == r || equalShallowly(*l, *r);
-    }
-};
 
 class ConstantExpr : public Expr {
   public:
