@@ -159,6 +159,11 @@ class DependencyForest {
     using size_type = size_t;
     using trees_vector_type = std::vector<reference>;
     using dependency_set_type = DependencySet;
+    using iterator = typename trees_vector_type::iterator;
+    using reverse_iterator = typename trees_vector_type::reverse_iterator;
+    using const_iterator = typename trees_vector_type::const_iterator;
+    using const_reverse_iterator =
+        typename trees_vector_type::const_reverse_iterator;
 
     constexpr explicit DependencyForest(size_type size) : forest_(size){};
     constexpr DependencyForest() noexcept = default;
@@ -166,6 +171,20 @@ class DependencyForest {
     constexpr DependencyForest(DependencyForest&&) noexcept = delete;
     constexpr DependencyForest& operator=(const DependencyForest&) = delete;
     constexpr DependencyForest& operator=(DependencyForest&&) = delete;
+    ~DependencyForest() = default;
+
+    constexpr iterator begin() noexcept { forest_.begin(); };
+    constexpr iterator end() noexcept { forest_.end(); };
+    constexpr reverse_iterator rbegin() noexcept { forest_.rbegin(); };
+    constexpr reverse_iterator rend() noexcept { forest_.rend(); };
+    constexpr const_iterator cbegin() const noexcept { forest_.cbegin(); };
+    constexpr const_iterator cend() const noexcept { forest_.cend(); };
+    constexpr const_reverse_iterator crbegin() const noexcept {
+        forest_.crbegin();
+    };
+    constexpr const_reverse_iterator crend() const noexcept {
+        forest_.crend();
+    };
 
     reference find(size_type index) {
         if (forest_.size() <= index)
