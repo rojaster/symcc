@@ -163,14 +163,16 @@ ExprRef ExprBuilder::createTrunc(ExprRef e, UINT32 bits) {
 }
 
 ExprRef BaseExprBuilder::createRead(ADDRINT off) {
-    static std::vector<ExprRef> cache;
-    if (off >= cache.size())
-        cache.resize(off + 1);
+    // @Info(alekum): @see Runtime.cpp::_sym_get_input_byte
+    // static std::vector<ExprRef> cache;
+    // if (off >= cache.size())
+    //     cache.resize(off + 1);
 
-    if (cache[off] == NULL)
-        cache[off] = std::make_shared<ReadExpr>(off);
+    // if (cache[off] == nullptr)
+    //     cache[off] = std::make_shared<ReadExpr>(off);
 
-    return cache[off];
+    // return cache[off];
+    return std::make_shared<ReadExpr>(off);
 }
 
 ExprRef BaseExprBuilder::createExtract(ExprRef e, UINT32 index, UINT32 bits) {

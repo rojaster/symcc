@@ -89,11 +89,6 @@ Solver::Solver(const std::vector<UINT8>& ibuf, const std::string out_dir,
     z3::params p(context_);
     p.set(":timeout", kSolverTimeout);
     solver_.set(p);
-
-    // @Info(alekum 29/09/2022) We know that forest size is not growing more
-    // than size of the input in worst case scenario.
-    // Change if memory is a bottleneck(rarely it is going to be)
-    // dep_forest_.resize(inputs_.size() + 1);
 }
 
 void Solver::push() { solver_.push(); }
@@ -108,12 +103,7 @@ void Solver::add(z3::expr expr) {
 }
 
 z3::check_result Solver::check() {
-    // uint64_t before = getTimeStamp();
     z3::check_result res;
-    // LOG_STAT(
-    //     "SMT: { \"solving_time\": " + decstr(solving_time_) + ", "
-    //     + "\"total_time\": " + decstr(before - start_time_) + " }\n");
-    //  LOG_DEBUG("Constraints: " + solver_.to_smt2() + "\n");
     try {
         auto start = std::chrono::steady_clock::now();
         res = solver_.check();
@@ -125,11 +115,6 @@ z3::check_result Solver::check() {
         // timeout can cause exception
         res = z3::unknown;
     }
-    // uint64_t cur = getTimeStamp();
-    // uint64_t elapsed = cur - before;
-    // LOG_STAT("SMT :: { Elapsed : " + decstr(elapsed) + "}\n");
-    //  solving_time_ += elapsed;
-    //  LOG_STAT("SMT: { \"solving_time\": " + decstr(solving_time_) + " }\n");
     return res;
 }
 
@@ -163,17 +148,19 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
 
     // check duplication before really solving something,
     // some can be handled by range based constraint solving
-    bool is_interesting =
-        true; // BABY_MODE - eveyrthin is interesting, but it is brute forcing
-              // branches and cases grow too much...
-    /*
-    if (pc == 0) {
-      // If addJcc() is called by special case, then rely on last_interested_
-      is_interesting = last_interested_;
-    } else {
-      is_interesting = isInterestingJcc(e, taken, pc);
-    }*/
+    bool is_interesting;
+    // = true; // BABY_MODE - eveyrthin is interesting, but it is brute
+    // forcing branches and cases grow too much...
 
+    if (pc == 0) {
+        // If addJcc() is called by special case, then rely on
+        is_interesting = last_interested_;
+    } else {
+        is_interesting = isInterestingJcc(e, taken, pc);
+    }
+
+    // @Cleanup(alekum): if the idea with fast ReadExpr handling works, remove
+    // this part . We don't require such constraint anymore.
     if (e->isConcrete()) {
         e->trySymbolize();
     }
@@ -270,6 +257,10 @@ UINT8 Solver::getInput(ADDRINT index) {
     return inputs_[index];
 }
 
+// @Info(alekum): Find a way to do this more effeciently
+// as copying bunch of data here and there is quite
+// costly operations. Probably, returning just
+// touched bytes in our case more than enough...
 std::vector<UINT8> Solver::getConcreteValues() {
     // TODO: change from real input
     z3::model m = solver_.get_model();
@@ -384,9 +375,9 @@ void Solver::syncConstraints(ExprRef e) {
     std::set<std::shared_ptr<DependencyTree<Expr>>> forest;
     DependencySet* deps = &e->getDeps();
 
-    // @Information(alekum): Calculate what deps are concrete and what symbolic
-    // across trees Treat deps symbolic if they are contained in curr node deps,
-    // others are concrete then
+    // @Information(alekum): Calculate what deps are concrete and what
+    // symbolic across trees Treat deps symbolic if they are contained in
+    // curr node deps, others are concrete then
     DependencySet condeps;
 
     for (const size_t index : *deps) {
@@ -418,7 +409,8 @@ void Solver::syncConstraints(ExprRef e) {
                 // Process range-based constraints
                 bool valid = false;
                 for (INT32 i = 0; i < 2; i++) {
-                    // @Cleanup(alekum): Check if we could get rid of it call...
+                    // @Cleanup(alekum): Check if we could get rid of it
+                    // call...
                     ExprRef expr_range = getRangeConstraint(node, i);
                     if (expr_range != NULL) {
                         resolveConstraints(expr_range, condeps);

@@ -69,7 +69,6 @@ ExprBuilder* g_expr_builder;
 Solver* g_solver;
 CallStackManager g_call_stack_manager;
 z3::context* g_z3_context;
-
 } // namespace qsym
 
 namespace {
@@ -89,7 +88,14 @@ std::string inputFileName;
 ///
 /// std::map seems to perform slightly better than std::unordered_map on our
 /// workload.
+/// @TODO(alekum): Do some tests to confirm
 std::map<SymExpr, qsym::ExprRef> allocatedExpressions;
+
+// @Cleanup(alekum): Remove it from here once it will be clear in how many
+// places we have static vectors for cache, current one in
+// BaseExprBuilder::createRead found we reuse there this variable. If this idea
+// works, we will clean it up
+std::vector<SymExpr> cachedReadExpressions;
 
 SymExpr registerExpression(const qsym::ExprRef& expr) {
     SymExpr rawExpr = expr.get();
@@ -163,10 +169,19 @@ void _sym_initialize(void) {
         exit(-1);
     }
     std::vector<UINT8> input(std::istreambuf_iterator<char>(ifs), {});
+    cachedReadExpressions.resize(input.size());
     std::cerr << "Read input data from " << g_config.inputFile << std::endl;
 
+    // @Cleanup(alekum): Solver should take SolverConfiguration or been created
+    // via Builder, keeping solver context as an internal object, though
+    // currently there are several Expr objects that uses context for their
+    // purposes
     g_z3_context = new z3::context{};
     g_solver = new Solver(input, g_config.outputDir, g_config.aflCoverageMap);
+
+    // @Cleanup(alekum): this might be handled via factory. if builder is
+    // unique, no threading just use singleton. Otherwise, thread_local handle
+    // per thread must be created.
     g_expr_builder = g_config.pruning ? PruneExprBuilder::create()
                                       : SymbolicExprBuilder::create();
 }
@@ -294,7 +309,15 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
 }
 
 SymExpr _sym_get_input_byte(size_t offset) {
-    return registerExpression(g_expr_builder->createRead(offset));
+    // @Info(alekum): Currently we assume that cache been resized in accordance
+    // with the size of input during initialization phase. Otherwise, a proper
+    // cache must be introduced.
+    if (nullptr == cachedReadExpressions[offset]) {
+        SymExpr se = registerExpression(g_expr_builder->createRead(offset));
+        cachedReadExpressions[offset] = se;
+        return se;
+    }
+    return cachedReadExpressions[offset];
 }
 
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
