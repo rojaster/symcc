@@ -131,12 +131,13 @@ bool Solver::checkAndSave(const std::string& postfix) {
 void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
     // Save the last instruction pointer for debugging
     last_pc_ = pc;
-
+#if 1
     std::cerr << "======================================== SOLVER:ADDJCC "
                  "======================================\n";
     std::cerr << e->toString() << std::endl;
     std::cerr << "======================================== SOLVER:ADDJCC "
-                 "======================================\n\n";
+                 "======================================\n";
+#endif
 
     // if e == Bool(true), then ignore
     if (e->kind() == Bool) {
@@ -161,18 +162,24 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
 
     // @Cleanup(alekum): if the idea with fast ReadExpr handling works, remove
     // this part . We don't require such constraint anymore.
-    if (e->isConcrete()) {
-        e->trySymbolize();
-    }
+    // if (e->isConcrete()) {
+    //    e->trySymbolize();
+    // }
 
-    if (is_interesting)
+    if (is_interesting) {
+#if 1
+        std::cerr << "Interesting pc=0x" << std::hex << pc << std::endl;
+#endif
         negatePath(e, taken);
+    }
     addConstraint(e, taken, is_interesting);
 
 #if 0
-  std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED CONSTRAINT ==================================\n";
-  dep_forest_.dump(std::cerr);
-  std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED CONSTRAINT ==================================\n\n";
+    std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED "
+                 "CONSTRAINT ==================================\n";
+    dep_forest_.dump(std::cerr);
+    std::cerr << "========================= DEP FOREST AFTER SOLVING PUSHED "
+                 "CONSTRAINT ==================================\n\n";
 #endif
 }
 
@@ -355,56 +362,40 @@ void Solver::addToSolver(ExprRef e, bool taken) {
     add(e->toZ3Expr());
 }
 
-void Solver::resolveConstraints(ExprRef e, const DependencySet& concrete) {
-    if (!e)
-        return;
-    if (e->kind() == Kind::Read) {
-        auto RE = castAsNonNull<ReadExpr>(e);
-        auto idx = RE->index();
-        if (concrete.count(idx)) {
-            RE->concretize();
-        } else {
-            RE->symbolize();
-        }
-    }
-    for (size_t i = 0; i < e->num_children(); ++i)
-        resolveConstraints(e->getChild(i), concrete);
-}
-
 void Solver::syncConstraints(ExprRef e) {
     std::set<std::shared_ptr<DependencyTree<Expr>>> forest;
-    DependencySet* deps = &e->getDeps();
+    DependencySet& symdeps = e->getDeps();
+    // @Info(alekum): We can get partially symbolic expression,
+    // so that we have to be sure that we turn everything into fully
+    // symbolic
+    for (const auto it : symdeps) {
+        auto dt = dep_forest_.find(it);
+        forest.insert(dt);
 
-    // @Information(alekum): Calculate what deps are concrete and what
-    // symbolic across trees Treat deps symbolic if they are contained in
-    // curr node deps, others are concrete then
-    DependencySet condeps;
-
-    for (const size_t index : *deps) {
-        auto DT = dep_forest_.find(index);
-        for (const size_t dep : DT->getDependencies()) {
-            if (!deps->count(dep)) {
-                condeps.insert(dep);
+        auto se = qsym::cachedReadExpressions[it];
+        if (se->isConcrete())
+            se->symbolize(); // @Info(alekum): can we make this call cheaper??
+    }
+    // condeps.erase(symdeps.begin(), symdeps.end()); // free(): double free
+    // detected in tcache 2
+    for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
+        for (const auto it : tree->getDependencies()) {
+            if (!symdeps.count(it)) {
+                qsym::cachedReadExpressions[it]->tryConcretize();
             }
         }
-        forest.insert(DT);
-    }
 
-#if 1
-    std::cerr << "FOR " << e->toString() << " DEPS ARE {\n";
-    std::cerr << "\tconcrete = [ ";
-    for (const size_t d : condeps)
-        std::cerr << d << ',';
-    std::cerr << " ]}\n";
-#endif
+        for (std::shared_ptr<Expr> node : tree->getNodes()) {
+            // @Info(alekum): if there are no common dependencies between node
+            // and
+            // processed ExprRef it means node is going to be fully
+            // concretized, and we don't have to add them to solver anyway
+            if (node->isConcrete()) {
+                continue;
+            }
 
-    for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
-        std::vector<std::shared_ptr<Expr>> nodes = tree->getNodes();
-        for (std::shared_ptr<Expr> node : nodes) {
             if (isRelational(node.get())) {
-                resolveConstraints(node, condeps);
-                if (!node->isConcrete())
-                    addToSolver(node, true);
+                addToSolver(node, true);
             } else {
                 // Process range-based constraints
                 bool valid = false;
@@ -413,9 +404,7 @@ void Solver::syncConstraints(ExprRef e) {
                     // call...
                     ExprRef expr_range = getRangeConstraint(node, i);
                     if (expr_range != NULL) {
-                        resolveConstraints(expr_range, condeps);
-                        if (!expr_range->isConcrete())
-                            addToSolver(expr_range, true);
+                        addToSolver(expr_range, true);
                         valid = true;
                     }
                 }
@@ -427,8 +416,6 @@ void Solver::syncConstraints(ExprRef e) {
             }
         }
     }
-
-    // checkFeasible();
 }
 
 void Solver::addConstraint(ExprRef e, bool taken, bool is_interesting) {
@@ -446,8 +433,6 @@ void Solver::addConstraint(ExprRef e) {
         QSYM_ASSERT(castAs<BoolExpr>(e)->value());
         return;
     }
-    // if (e->isConcrete())
-    //   return;
     dep_forest_.addNode(e);
 }
 
@@ -528,12 +513,12 @@ void Solver::negatePath(ExprRef e, bool taken) {
     syncConstraints(e);
     addToSolver(e, !taken);
     bool sat = checkAndSave();
-
+#if 1
     std::cerr << "====================== Z3 MODEL ===================\n";
     std::cerr << solver_.to_smt2() << std::endl;
     std::cerr << solver_.get_model() << std::endl;
     std::cerr << "====================== Z3 MODEL ===================\n";
-
+#endif
     if (!sat) {
         reset();
         // optimistic solving

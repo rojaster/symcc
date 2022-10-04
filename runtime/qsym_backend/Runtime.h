@@ -17,7 +17,10 @@
 
 #include "expr.h"
 
-typedef qsym::Expr *SymExpr;
+// @Cleanup(alekum): Remove this alias from here as it violates
+// namespaces...For this, refine the namespaces sharing across files
+using SymExpr = qsym::Expr*;
+
 #include <RuntimeCommon.h>
 
 #endif

@@ -67,7 +67,6 @@ class Solver {
     z3::expr getMaxValue(z3::expr& z3_expr);
 
     void addToSolver(ExprRef e, bool taken);
-    void resolveConstraints(ExprRef e, const DependencySet& concrete);
     void syncConstraints(ExprRef e);
 
     void addConstraint(ExprRef e, bool taken, bool is_interesting);

@@ -18,7 +18,21 @@
 // XXX: need to change into non-global variable?
 namespace qsym {
 
+class Expr;
+class ConstantExpr;
+class NonConstantExpr;
+class BoolExpr;
+class ExprBuilder;
+
+using ExprRef = std::shared_ptr<Expr>;
+using ConstantExprRef = std::shared_ptr<ConstantExpr>;
+using NonConstantExprRef = std::shared_ptr<NonConstantExpr>;
+using BoolExprRef = std::shared_ptr<BoolExpr>;
+using WeakExprRef = std::weak_ptr<Expr>;
+using WeakExprRefVector = std::vector<WeakExprRef>;
+using DependencySet = std::set<size_t>;
 extern z3::context* g_z3_context;
+extern std::vector<Expr*> cachedReadExpressions;
 
 enum Kind {
     Bool,     // 0
@@ -78,20 +92,6 @@ enum Kind {
 Kind swapKind(Kind kind);
 Kind negateKind(Kind kind);
 bool isNegatableKind(Kind kind);
-
-class Expr;
-class ConstantExpr;
-class NonConstantExpr;
-class BoolExpr;
-class ExprBuilder;
-
-using ExprRef = std::shared_ptr<Expr>;
-using ConstantExprRef = std::shared_ptr<ConstantExpr>;
-using NonConstantExprRef = std::shared_ptr<NonConstantExpr>;
-using BoolExprRef = std::shared_ptr<BoolExpr>;
-using WeakExprRef = std::weak_ptr<Expr>;
-using WeakExprRefVector = std::vector<WeakExprRef>;
-using DependencySet = std::set<size_t>;
 
 template <class T>
 inline std::shared_ptr<T> castAs(ExprRef e) {
@@ -312,11 +312,11 @@ class Expr {
     void simplify();
 
     z3::expr& toZ3Expr(bool verbose = false) {
-        if (expr_ == NULL || isInvalidated()) {
+        if (isInvalidated() || expr_ == nullptr) {
             z3::expr z3_expr = toZ3ExprRecursively(verbose);
             delete expr_;
             expr_ = new z3::expr(z3_expr);
-            inval();
+            isInvalidated_ = false;
         }
         return *expr_;
     }
@@ -379,6 +379,13 @@ class Expr {
     RangeSet* getSignedRangeSet() const { return getRangeSet(false); }
     RangeSet* getUnsignedRangeSet() const { return getRangeSet(true); }
 
+    // @Cleanup(alekum): Revise symbolize and trySymbolize methods
+    // Currently we force symbolization and invalidation of parents for
+    // symbolized children nodes. Though, we should investigate that we
+    // not doing it twice..and maybe with witty way to do this.
+    // In worst case, we just invalidate only expression once we already
+    // symbolized it. However, we might try to avoid even that penalty
+
     /// Make Expr symbolic and make every user of us as symbolic
     void symbolize() {
         inval();
@@ -391,7 +398,7 @@ class Expr {
             }
         }
     }
-    /// @brief Try to symbolize our children first and symbolize itself after
+    /// Try to symbolize our children first and symbolize itself after
     void trySymbolize() {
         for (size_t i = 0; i < num_children(); ++i) {
             auto e = getChild(i);
@@ -616,7 +623,7 @@ class ReadExpr : public NonConstantExpr {
 
   protected:
     bool printAux(ostream& os) const override {
-        os << "index=" << hexstr(index_);
+        os << "ptr=" << this << ", idx=" << index_;
         return true;
     }
 

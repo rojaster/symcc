@@ -20,6 +20,7 @@
 // Pin, so that we don't have to change all the Qsym code.
 //
 
+// @FIXME(alekum) REMOVE THIS FILE AS WE NOT USING QSYM ANYMORE
 #include <cstdint>
 #include <sstream>
 #include <string>
@@ -34,15 +35,5 @@ typedef int32_t INT32;
 typedef uint32_t UINT32;
 typedef uint64_t __uint64;
 typedef uintptr_t ADDRINT;
-
-/// Return the hex representation of a number.
-template <typename T>
-string hexstr(T arg) {
-    stringstream stream;
-    stream << hex << arg;
-    return stream.str();
-}
-
-#define decstr(x) to_string(x)
 
 #endif

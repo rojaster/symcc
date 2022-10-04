@@ -204,7 +204,7 @@ INT32 Expr::depth() {
 }
 
 void Expr::print(ostream& os, UINT depth) const {
-    os << getName() << "[" << (isConcrete_ ? "concrete" : "symbolic") << "](";
+    os << getName() << "[" << (isConcrete_ ? "c" : "s") << "](";
     bool begin = !printAux(os);
     printChildren(os, begin, depth);
     os << ")";
