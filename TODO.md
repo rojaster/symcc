@@ -3,16 +3,25 @@
 ## Backlog
 
 - [ ] Experiment with LLVM Optimizations
+- [ ] Experiment with quick symbolization/concretization phases
+- [ ] Clean up code
+    - [ ] remove global cachedReadExpressions
+    - [ ] remove global allocatedExpressions
+    - [ ] clean up global namespace and organize qsym namespace properly
+    - [ ] remove obsolete includes(currently we can remove pin.H)
+    - [ ] Split h,cc files properly
+    - [ ] run and fix clang-tidy issues
+
 ## In Progress
 
 - [ ] Update dependencies in Dockerfile(compiler, 
 ubuntu version, etc)
 - [ ] LLVM10 -> LLVM latest. Fix API accordingly(Check AdaCC)
-- [ ] New algorithm to make quick slicing for symbolic expressions
-- [ ] Fix std::tmpnam warning(Introduce buffer rather sending Filename to Solver)
 
 ## Completed
 
+- [X] ~~New algorithm to make quick slicing for symbolic expressions~~
+- [X] ~~Fix std::tmpnam warning(Introduce buffer rather sending Filename to Solver)~~
 - [X] ~~Update rust helper accordingly, copy from AdaCC this part~~
 - [x] ~~Update Rust version~~
 - [x] ~~Remove QSYM's backhanded dependencies~~
