@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
     // SIMPLE: #xab
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: different
 
     volatile int local = 0x12345678;
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
     // SIMPLE: #x56
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: different
 
     fprintf(stderr, "%s\n", !ptr ? "null" : "not null");
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     // to stdin3 (which are part of x, not ptr).
     //
     // SIMPLE-NOT: stdin{{[4-9]|1[0-9]}} -> #x{{.?[^0].?}}
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: not null
 
     return 0;

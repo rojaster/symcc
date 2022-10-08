@@ -35,20 +35,20 @@ int main(int argc, char *argv[]) {
   // Fully concrete
   fputs(strchr("foobar", 'o') != NULL ? "found" : "nope", stderr);
   // SIMPLE-NOT: Trying to solve
-  // QSYM-NOT: SMT
+  // SYMCC-NOT: SMT
   // ANY: found
 
   // Symbolic buffer, concrete char
   fputs(strchr(buffer, 'x') != NULL ? "found" : "nope", stderr);
   // SIMPLE-COUNT-4: Found diverging input
-  // QSYM: SMT
+  // SYMCC: SMT
   // ANY: nope
 
   // Concrete buffer, symbolic char
   fputs(strchr("test", buffer[0]) != NULL ? "found" : "nope", stderr);
   // SIMPLE: Trying to solve
   //
-  // QSYM's back-off mechanism kicks in because we're generating too many
+  // SYMCC's back-off mechanism kicks in because we're generating too many
   // queries; let's not check them anymore.
   //
   // ANY: found

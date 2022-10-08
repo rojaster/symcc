@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     // SIMPLE: Trying to solve
     // SIMPLE: (bvadd #x{{0*}}11
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: 22
 
     g_increment = 18;
@@ -80,38 +80,38 @@ int main(int argc, char* argv[]) {
     // SIMPLE: Found diverging input
     // We can't check for 0x12 here because with some versions of clang we end
     // up in a situation where (x + 18) >= 30 is folded into x >= 12.
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: 23
 
     g_uninitialized = 101;
     fprintf(stderr, "%s\n", (x < g_uninitialized) ? "smaller" : "greater or equal");
     // SIMPLE: Trying to solve
     // SIMPLE: (bvsle #x{{0*}}65
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: smaller
 
     sum(x);
     // SIMPLE: Trying to solve
     // SIMPLE-NOT: Can't find
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: bar
 
     fprintf(stderr, "%s\n", (x < g_more_than_one_byte_int) ? "true" : "false");
     // SIMPLE: Trying to solve
     // SIMPLE: #x{{0*}}200
     // SIMPLE: Can't find
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     // ANY: true
 
     sum_ints(x);
     // SIMPLE: Trying to solve
     // SIMPLE: #x{{0*}}4b0
     // SIMPLE: Can't find
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     // ANY: bar
 
     return 0;

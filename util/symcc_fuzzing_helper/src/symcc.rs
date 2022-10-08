@@ -423,7 +423,7 @@ pub struct SymCCResult {
     pub killed: bool,
     /// The total time taken by the execution.
     pub time: Duration,
-    /// The time spent in the solver (Qsym backend only).
+    /// The time spent in the solver (Symcc backend only).
     pub solver_time: Option<Duration>,
 }
 
@@ -440,7 +440,7 @@ impl SymCC {
         }
     }
 
-    /// Try to extract the solver time from the logs produced by the Qsym
+    /// Try to extract the solver time from the logs produced by the Symcc
     /// backend.
     fn parse_solver_time(output: Vec<u8>) -> Option<Duration> {
         let re = Regex::new(r#""solving_time": (\d+)"#).unwrap();
@@ -464,7 +464,7 @@ impl SymCC {
     /// Run SymCC on the given input, writing results to the provided temporary
     /// directory.
     ///
-    /// If SymCC is run with the Qsym backend, this function attempts to
+    /// If SymCC is run with the Symcc backend, this function attempts to
     /// determine the time spent in the SMT solver and report it as part of the
     /// result. However, the mechanism that the backend uses to report solver
     /// time is somewhat brittle.

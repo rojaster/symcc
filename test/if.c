@@ -31,12 +31,12 @@ int foo(int a, int b) {
     // BITCODE-NOT: load
     // BITCODE-NOT: store
     // SIMPLE: Trying to solve
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     // BITCODE: shl
     if (2 * a < b)
         return a;
     // SIMPLE: Trying to solve
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     else if (a % b)
         return b;
     else

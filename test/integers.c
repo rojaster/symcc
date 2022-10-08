@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   // SIMPLE-DAG: #xbb
   // SIMPLE-DAG: #xcc
   // SIMPLE-DAG: #xdd
-  // QSYM-COUNT-2: SMT
+  // SYMCC-COUNT-2: SMT
   // ANY: no
 
   return 0;

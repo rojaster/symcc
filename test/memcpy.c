@@ -57,19 +57,19 @@ int main(int argc, char *argv[]) {
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
   // SIMPLE: stdin{{[0-3]}}
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
   // SIMPLE-DAG: stdin{{[0-3]}} -> #x00
   // SIMPLE-DAG: stdin{{[4-7]}} -> #x{{.?[^0].?}}
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
   // SIMPLE-DAG: stdin{{[0-7]}} -> #x00
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // ANY: 1
 
   void *pointer = mmap(NULL, 8, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);

@@ -16,7 +16,8 @@ cmake_minimum_required(VERSION 3.5)
 project(SymbolicCompiler)
 set(CMAKE_CXX_STANDARD 17)
 
-option(SYMCC_BACKEND "Use the Qsym backend instead of our own" ON)
+option(SYMCC_BACKEND "Use the Symcc backend instead of our own" ON)
+option(Z3_TRUST_SYSTEM_VERSION "Trust system installed Z3 lib" ON)
 option(TARGET_32BIT "Make the compiler work correctly with -m32" OFF)
 
 # We need to build the runtime as an external project because CMake otherwise

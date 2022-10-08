@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
   // SIMPLE: stdin0 -> #x61
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   if (c == 'a')
     fprintf(stderr, "Correct\n");
   else

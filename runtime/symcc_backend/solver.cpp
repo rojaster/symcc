@@ -3,16 +3,15 @@
 #include <chrono>
 #include <set>
 
-namespace qsym {
+namespace symcc {
 
 namespace {
 
 const uint64_t kUsToS = 1000000;
-const int kSessionIdLength = 32;
 const unsigned kSolverTimeout = 10000; // 10 seconds
 
 std::string toString6digit(INT32 val) {
-    char buf[6 + 1]; // ndigit + 1
+    char buf[7]; // ndigit + 1
     snprintf(buf, 7, "%06d", val);
     buf[6] = '\0';
     return std::string(buf);
@@ -287,7 +286,19 @@ std::vector<UINT8> Solver::getConcreteValues() {
 }
 
 void Solver::saveValues(const std::string& postfix) {
-    std::vector<UINT8> values = getConcreteValues();
+    z3::model m = solver_.get_model();
+    unsigned num_constants = m.num_consts();
+    std::vector<UINT8> values = inputs_;
+    for (unsigned i = 0; i < num_constants; i++) {
+        z3::func_decl decl = m.get_const_decl(i);
+        z3::expr e = m.get_const_interp(decl);
+        z3::symbol name = decl.name();
+
+        if (name.kind() == Z3_INT_SYMBOL) {
+            int value = e.get_numeral_int();
+            values[name.to_int()] = (UINT8)value;
+        }
+    }
 
     // If no output directory is specified, then just print it out
     if (out_dir_.empty()) {
@@ -301,14 +312,13 @@ void Solver::saveValues(const std::string& postfix) {
         fname = fname + "-" + postfix;
     ofstream of(fname, std::ofstream::out | std::ofstream::binary);
     LOG_INFO("New testcase: " + fname + "\n");
-    if (of.fail())
-        LOG_FATAL("Unable to open a file to write results\n");
-
-    // TODO: batch write
-    for (unsigned i = 0; i < values.size(); i++) {
-        char val = values[i];
-        of.write(&val, sizeof(val));
+    if (of.fail()) {
+        perror("Unable to open a file to write results\n");
+        of.close();
+        return;
     }
+
+    std::copy(values.begin(), values.end(), ostreambuf_iterator<char>(of));
 
     of.close();
     num_generated_++;
@@ -372,7 +382,7 @@ void Solver::syncConstraints(ExprRef e) {
         auto dt = dep_forest_.find(it);
         forest.insert(dt);
 
-        auto se = qsym::cachedReadExpressions[it];
+        auto se = symcc::cachedReadExpressions[it];
         if (se->isConcrete())
             se->symbolize(); // @Info(alekum): can we make this call cheaper??
     }
@@ -381,7 +391,7 @@ void Solver::syncConstraints(ExprRef e) {
     for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
         for (const auto it : tree->getDependencies()) {
             if (!symdeps.count(it)) {
-                qsym::cachedReadExpressions[it]->tryConcretize();
+                symcc::cachedReadExpressions[it]->tryConcretize();
             }
         }
 
@@ -430,7 +440,7 @@ void Solver::addConstraint(ExprRef e, bool taken, bool is_interesting) {
 void Solver::addConstraint(ExprRef e) {
     // If e is true, then just skip
     if (e->kind() == Bool) {
-        QSYM_ASSERT(castAs<BoolExpr>(e)->value());
+        SYMCC_ASSERT(castAs<BoolExpr>(e)->value());
         return;
     }
     dep_forest_.addNode(e);
@@ -541,4 +551,4 @@ inline void Solver::checkFeasible() {
 #endif
 }
 
-} // namespace qsym
+} // namespace symcc

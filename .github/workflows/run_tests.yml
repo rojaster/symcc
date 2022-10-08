@@ -11,7 +11,7 @@ jobs:
         run: docker build --target builder_simple  -t symcc .
       - name: Build libcxx using SymCC simple backend
         run: docker build --target builder_libcxx  -t symcc .
-      - name: Build and test SymCC with Qsym backend
-        run: docker build --target builder_qsym  -t symcc .
-      - name: Creation of the final SymCC docker image with Qsym backend and libcxx
+      - name: Build and test SymCC with Symcc backend
+        run: docker build --target builder_symc  -t symcc .
+      - name: Creation of the final SymCC docker image with Symcc backend and libcxx
         run: docker build  -t symcc .

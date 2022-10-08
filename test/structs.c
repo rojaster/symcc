@@ -47,34 +47,34 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "%s\n", (p.x < 100) ? "yes" : "no");
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: yes
 
     fprintf(stderr, "%s\n", (p.y < 100) ? "yes" : "no");
     // SIMPLE-NOT: Trying to solve
-    // QSYM-NOT: SMT
+    // SYMCC-NOT: SMT
     // ANY: yes
 
     fprintf(stderr, "%s\n", (p.x < p.y) ? "yes" : "no");
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: yes
 
     fprintf(stderr, "%s\n", ((p.x < g_point.x) || (p.y < g_point.y)) ? "yes" : "no");
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: no
 
     fprintf(stderr, "%s\n", (g_point_array[1].x < x) ? "yes" : "no");
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: yes
 
     // Nested structs
@@ -84,8 +84,8 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "%s\n", (l.end.x > x) ? "yes" : "no");
     // SIMPLE: Trying to solve
     // SIMPLE: Found diverging input
-    // QSYM-COUNT-2: SMT
-    // QSYM: New testcase
+    // SYMCC-COUNT-2: SMT
+    // SYMCC: New testcase
     // ANY: no
 
     return 0;

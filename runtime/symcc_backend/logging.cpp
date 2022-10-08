@@ -5,7 +5,7 @@
 #include "pin.H"
 #include "solver.h"
 
-namespace qsym {
+namespace symcc {
 
 /// Return the hex representation of a number.
 template <typename T>
@@ -48,4 +48,4 @@ void LOG_INFO(const std::string& msg) { log("INFO", msg); }
 void LOG_STAT(const std::string& msg) { log("STAT", msg); }
 void LOG_WARN(const std::string& msg) { log("WARN", msg); }
 
-} // namespace qsym
+} // namespace symcc

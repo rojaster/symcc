@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
   }
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // ANY: x is 5
 
   fprintf(stderr, "%d\n", foo);
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     break;
   }
   // SIMPLE-NOT: Trying to solve
-  // QSYM-NOT: SMT
+  // SYMCC-NOT: SMT
   // ANY: y is something else
 
   return 0;

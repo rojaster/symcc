@@ -85,9 +85,9 @@ RUN export SYMCC_REGULAR_LIBCXX=yes SYMCC_NO_SYMBOLIC_INPUT=yes \
     && ninja install-distribution
 
 #
-# Build SymCC with the Qsym backend
+# Build SymCC with the Symcc backend
 #
-FROM builder_libcxx AS builder_qsym
+FROM builder_libcxx AS builder_symcc
 WORKDIR /symcc_build
 RUN cmake -G Ninja \
     -DSYMCC_BACKEND=ON \
@@ -116,11 +116,11 @@ RUN apt-get update \
     && useradd -m -s /bin/bash ubuntu \
     && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu
 
-COPY --from=builder_qsym /symcc_build /symcc_build
-COPY --from=builder_qsym /root/.cargo/bin/symcc_fuzzing_helper /symcc_build/
+COPY --from=builder_symcc /symcc_build /symcc_build
+COPY --from=builder_symcc /root/.cargo/bin/symcc_fuzzing_helper /symcc_build/
 COPY util/pure_concolic_execution.sh /symcc_build/
-COPY --from=builder_qsym /libcxx_symcc_install /libcxx_symcc_install
-COPY --from=builder_qsym /afl /afl
+COPY --from=builder_symcc /libcxx_symcc_install /libcxx_symcc_install
+COPY --from=builder_symcc /afl /afl
 
 ENV PATH /symcc_build:/root/.cargo/bin:$PATH
 ENV AFL_PATH /afl

@@ -1,5 +1,5 @@
-#ifndef QSYM_SOLVER_H_
-#define QSYM_SOLVER_H_
+#ifndef SYMCC_SOLVER_H_
+#define SYMCC_SOLVER_H_
 
 #include <fstream>
 #include <sys/stat.h>
@@ -14,7 +14,7 @@
 // #include "thread_context.h"
 #include "expr_builder.h"
 
-namespace qsym {
+namespace symcc {
 // @FIXME(alekum 29/09/2022): If context is supposed to be a global
 // consider to create a singleton  that supposed to provide such context
 // or factory to create such objects...
@@ -85,6 +85,6 @@ class Solver {
 
 extern Solver* g_solver;
 
-} // namespace qsym
+} // namespace symcc
 
-#endif // QSYM_SOLVER_H_
+#endif // SYMCC_SOLVER_H_

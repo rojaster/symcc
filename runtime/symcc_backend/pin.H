@@ -17,7 +17,7 @@
 
 //
 // This file provides mocks for everything that would normally be included from
-// Pin, so that we don't have to change all the Qsym code.
+// Pin, so that we don't have to change all the Symcc code.
 //
 
 // @FIXME(alekum) REMOVE THIS FILE AS WE NOT USING QSYM ANYMORE

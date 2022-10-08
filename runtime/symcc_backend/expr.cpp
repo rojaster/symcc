@@ -3,7 +3,7 @@
 #include "solver.h"
 
 // NOTE: Some simplification is ported from KLEE
-namespace qsym {
+namespace symcc {
 
 // KNOB<bool> g_opt_debug_subsumption(KNOB_MODE_WRITEONCE, "pintool",
 //     "debug_subsumption", "0", "debug constraints subsumption");
@@ -419,4 +419,4 @@ void URemExpr::print(ostream& os, UINT depth) const {
     BinaryExpr::print(os, depth, "%_u");
 }
 
-} // namespace qsym
+} // namespace symcc

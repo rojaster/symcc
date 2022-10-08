@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
 
     fprintf(stderr, "%s\n", (p[0] == 1) ? "yes" : "no");
     // SIMPLE: Trying to solve
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     // ANY: yes
 
     // If our GetElementPointer computations are incorrect, this will create
@@ -44,16 +44,16 @@ int main(int argc, char* argv[]) {
     // access.
     fprintf(stderr, "%s\n", (p[2] == 3) ? "yes" : "no");
     // SIMPLE: Trying to solve
-    // QSYM-COUNT-2: SMT
+    // SYMCC-COUNT-2: SMT
     // ANY: yes
 
     // Use the pointer in a condition to see if contradicting constraints have
-    // been created. The QSYM backend will log an error in this case (see
+    // been created. The SYMCC backend will log an error in this case (see
     // below), the simple backend just aborts.
     fprintf(stderr, "%s\n", (p == input) ? "yes" : "no");
     // SIMPLE: Trying to solve
-    // QSYM-NOT: Incorrect constraints are inserted
-    // QSYM-COUNT-2: SMT
+    // SYMCC-NOT: Incorrect constraints are inserted
+    // SYMCC-COUNT-2: SMT
     // ANY: yes
 
     return 0;

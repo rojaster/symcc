@@ -1,10 +1,10 @@
-#ifndef QSYM_EXPR_CACHE_H_
-#define QSYM_EXPR_CACHE_H_
+#ifndef SYMCC_EXPR_CACHE_H_
+#define SYMCC_EXPR_CACHE_H_
 
 #include "expr.h"
 #include <queue>
 
-namespace qsym {
+namespace symcc {
 
 const size_t kCacheSize = 1024;
 
@@ -42,6 +42,6 @@ class ExprCache {
     void cleanup();
 };
 
-} // namespace qsym
+} // namespace symcc
 
-#endif // QSYM_EXPR_CACHE_H_
+#endif // SYMCC_EXPR_CACHE_H_

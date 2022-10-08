@@ -3,7 +3,7 @@
 #include "solver.h"
 #include <llvm/ADT/StringRef.h>
 
-namespace qsym {
+namespace symcc {
 
 namespace {
 
@@ -119,7 +119,7 @@ ExprRef ExprBuilder::createMsb(ExprRef e) {
 ExprRef ExprBuilder::createLsb(ExprRef e) { return createExtract(e, 0, 1); }
 
 ExprRef ExprBuilder::bitToBool(ExprRef e) {
-    QSYM_ASSERT(e->bits() == 1);
+    SYMCC_ASSERT(e->bits() == 1);
     ExprRef one = createConstant(1, e->bits());
     return createEqual(e, one);
 }
@@ -163,15 +163,6 @@ ExprRef ExprBuilder::createTrunc(ExprRef e, UINT32 bits) {
 }
 
 ExprRef BaseExprBuilder::createRead(ADDRINT off) {
-    // @Info(alekum): @see Runtime.cpp::_sym_get_input_byte
-    // static std::vector<ExprRef> cache;
-    // if (off >= cache.size())
-    //     cache.resize(off + 1);
-
-    // if (cache[off] == nullptr)
-    //     cache[off] = std::make_shared<ReadExpr>(off);
-
-    // return cache[off];
     return std::make_shared<ReadExpr>(off);
 }
 
@@ -186,7 +177,7 @@ ExprRef BaseExprBuilder::createExtract(ExprRef e, UINT32 index, UINT32 bits) {
 ExprRef CacheExprBuilder::findOrInsert(ExprRef new_expr) {
     if (ExprRef cached = findInCache(new_expr))
         return cached;
-    QSYM_ASSERT(new_expr != NULL);
+    SYMCC_ASSERT(new_expr != NULL);
     insertToCache(new_expr);
     return new_expr;
 }
@@ -474,7 +465,7 @@ ExprRef ConstantFoldingExprBuilder::createDistinct(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value() != ce_r->value());
     }
 
@@ -493,7 +484,7 @@ ExprRef ConstantFoldingExprBuilder::createEqual(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value() == ce_r->value());
     }
 
@@ -662,7 +653,7 @@ ExprRef SymbolicExprBuilder::createAdd(ExprRef l, ExprRef r) {
             return createAdd(ce_l, nce_r);
         else {
             NonConstantExprRef nce_l = castAs<NonConstantExpr>(l);
-            QSYM_ASSERT(nce_l != NULL);
+            SYMCC_ASSERT(nce_l != NULL);
             return createAdd(nce_l, nce_r);
         }
     } else
@@ -750,7 +741,7 @@ ExprRef SymbolicExprBuilder::createSub(ExprRef l, ExprRef r) {
             return createSub(ce_l, nce_r);
         else {
             NonConstantExprRef nce_l = castAs<NonConstantExpr>(l);
-            QSYM_ASSERT(nce_l != NULL);
+            SYMCC_ASSERT(nce_l != NULL);
             return createSub(nce_l, nce_r);
         }
     } else
@@ -943,7 +934,7 @@ ExprRef SymbolicExprBuilder::createAnd(ExprRef l, ExprRef r) {
             return createAnd(ce_l, nce_r);
         else {
             NonConstantExprRef nce_l = castAs<NonConstantExpr>(l);
-            QSYM_ASSERT(nce_l != NULL);
+            SYMCC_ASSERT(nce_l != NULL);
             return createAnd(nce_l, nce_r);
         }
     } else
@@ -983,7 +974,7 @@ ExprRef SymbolicExprBuilder::createOr(ExprRef l, ExprRef r) {
             return createOr(ce_l, nce_r);
         else {
             NonConstantExprRef nce_l = castAs<NonConstantExpr>(l);
-            QSYM_ASSERT(nce_l != NULL);
+            SYMCC_ASSERT(nce_l != NULL);
             return createOr(nce_l, nce_r);
         }
     } else
@@ -1874,7 +1865,7 @@ ExprRef ConstantFoldingExprBuilder::createAShr(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().ashr(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createAShr(l, r);
@@ -1885,7 +1876,7 @@ ExprRef ConstantFoldingExprBuilder::createAdd(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() + ce_r->value(), l->bits());
     } else
         return ExprBuilder::createAdd(l, r);
@@ -1896,7 +1887,7 @@ ExprRef ConstantFoldingExprBuilder::createAnd(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() & ce_r->value(), l->bits());
     } else
         return ExprBuilder::createAnd(l, r);
@@ -1907,7 +1898,7 @@ ExprRef ConstantFoldingExprBuilder::createLShr(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().lshr(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createLShr(l, r);
@@ -1918,7 +1909,7 @@ ExprRef ConstantFoldingExprBuilder::createMul(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() * ce_r->value(), l->bits());
     } else
         return ExprBuilder::createMul(l, r);
@@ -1929,7 +1920,7 @@ ExprRef ConstantFoldingExprBuilder::createOr(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() | ce_r->value(), l->bits());
     } else
         return ExprBuilder::createOr(l, r);
@@ -1940,7 +1931,7 @@ ExprRef ConstantFoldingExprBuilder::createSDiv(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().sdiv(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createSDiv(l, r);
@@ -1951,7 +1942,7 @@ ExprRef ConstantFoldingExprBuilder::createSRem(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().srem(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createSRem(l, r);
@@ -1962,7 +1953,7 @@ ExprRef ConstantFoldingExprBuilder::createSge(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().sge(ce_r->value()));
     } else
         return ExprBuilder::createSge(l, r);
@@ -1973,7 +1964,7 @@ ExprRef ConstantFoldingExprBuilder::createSgt(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().sgt(ce_r->value()));
     } else
         return ExprBuilder::createSgt(l, r);
@@ -1984,7 +1975,7 @@ ExprRef ConstantFoldingExprBuilder::createShl(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() << ce_r->value(), l->bits());
     } else
         return ExprBuilder::createShl(l, r);
@@ -1995,7 +1986,7 @@ ExprRef ConstantFoldingExprBuilder::createSle(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().sle(ce_r->value()));
     } else
         return ExprBuilder::createSle(l, r);
@@ -2006,7 +1997,7 @@ ExprRef ConstantFoldingExprBuilder::createSlt(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().slt(ce_r->value()));
     } else
         return ExprBuilder::createSlt(l, r);
@@ -2017,7 +2008,7 @@ ExprRef ConstantFoldingExprBuilder::createSub(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() - ce_r->value(), l->bits());
     } else
         return ExprBuilder::createSub(l, r);
@@ -2028,7 +2019,7 @@ ExprRef ConstantFoldingExprBuilder::createUDiv(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().udiv(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createUDiv(l, r);
@@ -2039,7 +2030,7 @@ ExprRef ConstantFoldingExprBuilder::createURem(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value().urem(ce_r->value()), l->bits());
     } else
         return ExprBuilder::createURem(l, r);
@@ -2050,7 +2041,7 @@ ExprRef ConstantFoldingExprBuilder::createUge(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().uge(ce_r->value()));
     } else
         return ExprBuilder::createUge(l, r);
@@ -2061,7 +2052,7 @@ ExprRef ConstantFoldingExprBuilder::createUgt(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().ugt(ce_r->value()));
     } else
         return ExprBuilder::createUgt(l, r);
@@ -2072,7 +2063,7 @@ ExprRef ConstantFoldingExprBuilder::createUle(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().ule(ce_r->value()));
     } else
         return ExprBuilder::createUle(l, r);
@@ -2083,7 +2074,7 @@ ExprRef ConstantFoldingExprBuilder::createUlt(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createBool(ce_l->value().ult(ce_r->value()));
     } else
         return ExprBuilder::createUlt(l, r);
@@ -2094,7 +2085,7 @@ ExprRef ConstantFoldingExprBuilder::createXor(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
         return createConstant(ce_l->value() ^ ce_r->value(), l->bits());
     } else
         return ExprBuilder::createXor(l, r);
@@ -2290,4 +2281,4 @@ ExprRef PruneExprBuilder::createIte(ExprRef expr_cond, ExprRef expr_true,
         return ref->evaluate();
 }
 
-} // namespace qsym
+} // namespace symcc

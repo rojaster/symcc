@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script is to make a quick test of SymCC with Qsym backend, it
+# This script is to make a quick test of SymCC with Symcc backend, it
 # is supposed to work on ubuntu groovy, e.g., after running:
 
 # vagrant init ubuntu/groovy64

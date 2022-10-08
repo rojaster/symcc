@@ -1,5 +1,5 @@
-#ifndef QSYM_EXPR_H_
-#define QSYM_EXPR_H_
+#ifndef SYMCC_EXPR_H_
+#define SYMCC_EXPR_H_
 
 #include <iomanip>
 #include <iostream>
@@ -16,7 +16,7 @@
 #include "range.h"
 
 // XXX: need to change into non-global variable?
-namespace qsym {
+namespace symcc {
 
 class Expr;
 class ConstantExpr;
@@ -548,7 +548,7 @@ class BinaryExpr : public NonConstantExpr {
         : NonConstantExpr(kind, bits) {
         addChild(l);
         addChild(r);
-        QSYM_ASSERT(l->bits() == r->bits());
+        SYMCC_ASSERT(l->bits() == r->bits());
     }
 
     BinaryExpr(Kind kind, ExprRef l, ExprRef r)
@@ -1239,5 +1239,5 @@ bool isConstant(ExprRef e);
 bool isConstSym(ExprRef e);
 UINT32 getMSB(ExprRef e);
 
-} // namespace qsym
-#endif // QSYM_EXPR_H_
+} // namespace symcc
+#endif // SYMCC_EXPR_H_

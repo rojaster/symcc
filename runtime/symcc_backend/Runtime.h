@@ -19,7 +19,7 @@
 
 // @Cleanup(alekum): Remove this alias from here as it violates
 // namespaces...For this, refine the namespaces sharing across files
-using SymExpr = qsym::Expr*;
+using SymExpr = symcc::Expr*;
 
 #include <RuntimeCommon.h>
 

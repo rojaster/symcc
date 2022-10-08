@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
   // SIMPLE: #x06
-  // Qsym doesn't support symbolic floats!
-  // QSYM-NOT: SMT
+  // Symcc doesn't support symbolic floats!
+  // SYMCC-NOT: SMT
   // ANY: no
 
   return 0;

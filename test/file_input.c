@@ -60,13 +60,13 @@ int main(int argc, char* argv[]) {
   else
     fprintf(stderr, "Why was the variable overwritten?\n");
   // SIMPLE-NOT: Trying to solve
-  // QSYM-NOT: SMT
+  // SYMCC-NOT: SMT
   // ANY: All is good.
 
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // ANY: Not sure
   if (input >= 42)
     fprintf(stderr, "This may be the answer.\n");
@@ -89,8 +89,8 @@ int main(int argc, char* argv[]) {
 
   // SIMPLE: Trying to solve
   // SIMPLE: Found diverging input
-  // QSYM-COUNT-2: SMT
-  // QSYM: New testcase
+  // SYMCC-COUNT-2: SMT
+  // SYMCC: New testcase
   // ANY: No.
   if (four_as != (int)0x61616161)
     fprintf(stderr, "The matrix has changed.\n");
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
   same_input = ntohl(same_input);
 
   // SIMPLE: Trying to solve
-  // QSYM-COUNT-2: SMT
+  // SYMCC-COUNT-2: SMT
   // ANY: Yep
   if (same_input == 5)
     fprintf(stderr, "Yep, it's the test input.\n");
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
   }
 
   // SIMPLE: Trying to solve
-  // QSYM-COUNT-2: SMT
+  // SYMCC-COUNT-2: SMT
   // ANY: Still
   if (same_four_as == (int)0x61616161)
     fprintf(stderr, "Still the test input.\n");

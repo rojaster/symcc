@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   // SIMPLE-DAG: stdin1 -> #xbe
   // SIMPLE-DAG: stdin2 -> #xfe
   // SIMPLE-DAG: stdin3 -> #xca
-  // QSYM-COUNT-2: SMT
+  // SYMCC-COUNT-2: SMT
   // ANY: Not quite.
   if (y == 0xcafebeef)
     fprintf(stderr, "Correct test input.\n");

@@ -1,11 +1,11 @@
-#ifndef QSYM_EXPR_BUILDER_H_
-#define QSYM_EXPR_BUILDER_H_
+#ifndef SYMCC_EXPR_BUILDER_H_
+#define SYMCC_EXPR_BUILDER_H_
 
 #include <list>
 
 #include "expr_cache.h"
 
-namespace qsym {
+namespace symcc {
 
 class ExprBuilder {
   public:
@@ -321,6 +321,6 @@ class PruneExprBuilder : public ExprBuilder {
 
 extern ExprBuilder* g_expr_builder;
 
-} // namespace qsym
+} // namespace symcc
 
-#endif // QSYM_EXPR_BUILDER_H_
+#endif // SYMCC_EXPR_BUILDER_H_

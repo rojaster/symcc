@@ -13,7 +13,7 @@
 // SymCC. If not, see <https://www.gnu.org/licenses/>.
 
 //
-// Definitions that we need for the Qsym backend
+// Definitions that we need for the Symcc backend
 //
 
 #include "Runtime.h"
@@ -48,7 +48,7 @@
 // C
 #include <cstdio>
 
-// Qsym
+// Symcc
 #include <afl_trace_map.h>
 #include <call_stack_manager.h>
 #include <expr_builder.h>
@@ -63,7 +63,7 @@
 #include <LibcWrappers.h>
 #include <Shadow.h>
 
-namespace qsym {
+namespace symcc {
 
 ExprBuilder* g_expr_builder;
 Solver* g_solver;
@@ -75,10 +75,10 @@ z3::context* g_z3_context;
 // BaseExprBuilder::createRead found we reuse there this variable. If this idea
 // works, we will clean it up
 std::vector<Expr*> cachedReadExpressions;
-} // namespace qsym
+} // namespace symcc
 
 namespace {
-/// A mapping of all expressions that we have ever received from Qsym to the
+/// A mapping of all expressions that we have ever received from Symcc to the
 /// corresponding shared pointers on the heap.
 ///
 /// We can't expect C clients to handle std::shared_ptr, so we maintain a single
@@ -88,7 +88,7 @@ namespace {
 /// std::map seems to perform slightly better than std::unordered_map on our
 /// workload.
 /// @TODO(alekum): Do some tests to confirm
-std::map<SymExpr, qsym::ExprRef> allocatedExpressions;
+std::map<SymExpr, symcc::ExprRef> allocatedExpressions;
 
 /// Indicate whether the runtime has been initialized.
 std::atomic_flag g_initialized = ATOMIC_FLAG_INIT;
@@ -96,7 +96,7 @@ std::atomic_flag g_initialized = ATOMIC_FLAG_INIT;
 /// The file that contains out input.
 std::string inputFileName;
 
-SymExpr registerExpression(const qsym::ExprRef& expr) {
+SymExpr registerExpression(const symcc::ExprRef& expr) {
     SymExpr rawExpr = expr.get();
 
     if (allocatedExpressions.count(rawExpr) == 0) {
@@ -110,7 +110,7 @@ SymExpr registerExpression(const qsym::ExprRef& expr) {
 
 } // namespace
 
-using namespace qsym;
+using namespace symcc;
 
 #if HAVE_FILESYSTEM
 namespace fs = std::filesystem;
@@ -124,7 +124,7 @@ void _sym_initialize(void) {
 
     loadConfig();
     initLibcWrappers();
-    std::cerr << "This is SymCC running with the QSYM backend" << std::endl;
+    std::cerr << "This is SymCC running with the SYMCC backend" << std::endl;
     if (g_config.fullyConcrete) {
         std::cerr << "Performing fully concrete execution (i.e., without "
                      "symbolic input)"
@@ -141,7 +141,7 @@ void _sym_initialize(void) {
         exit(-1);
     }
 
-    // Qsym requires the full input in a file
+    // Symcc requires the full input in a file
     if (g_config.inputFile.empty()) {
         g_config.inputFile =
             (fs::path(g_config.outputDir) / "stdinXXXXXX").string();
@@ -168,7 +168,7 @@ void _sym_initialize(void) {
         exit(-1);
     }
     std::vector<UINT8> input(std::istreambuf_iterator<char>(ifs), {});
-    qsym::cachedReadExpressions.resize(input.size());
+    symcc::cachedReadExpressions.resize(input.size());
     std::cerr << "Read input data from " << g_config.inputFile
               << ", size: " << input.size() << std::endl;
 
@@ -187,7 +187,7 @@ void _sym_initialize(void) {
 }
 
 SymExpr _sym_build_integer(uint64_t value, uint8_t bits) {
-    // Qsym's API takes uintptr_t, so we need to be careful when compiling for
+    // Symcc's API takes uintptr_t, so we need to be careful when compiling for
     // 32-bit systems: the compiler would helpfully truncate our uint64_t to fit
     // into 32 bits.
     if constexpr (sizeof(uint64_t) == sizeof(uintptr_t)) {
@@ -228,9 +228,9 @@ SymExpr _sym_build_bool(bool value) {
     return registerExpression(g_expr_builder->createBool(value));
 }
 
-#define DEF_BINARY_EXPR_BUILDER(name, qsymName)                                \
+#define DEF_BINARY_EXPR_BUILDER(name, symcName)                                \
     SymExpr _sym_build_##name(SymExpr a, SymExpr b) {                          \
-        return registerExpression(g_expr_builder->create##qsymName(            \
+        return registerExpression(g_expr_builder->create##symcName(            \
             allocatedExpressions.at(a), allocatedExpressions.at(b)));          \
     }
 
@@ -313,8 +313,8 @@ void _sym_push_path_constraint(SymExpr constraint, int taken,
         << "======================================== ALLOCATED "
            "READ EXPRESSIONS SO FAR ======================================"
         << std::endl;
-    for (size_t i = 0; i < qsym::cachedReadExpressions.size(); ++i) {
-        SymExpr it = qsym::cachedReadExpressions[i];
+    for (size_t i = 0; i < symcc::cachedReadExpressions.size(); ++i) {
+        SymExpr it = symcc::cachedReadExpressions[i];
         std::cerr << "Read(offset=" << i
                   << ") :: " << (it ? it->toString() : "nullptr") << std::endl;
     }
@@ -328,12 +328,12 @@ SymExpr _sym_get_input_byte(size_t offset) {
     // @Info(alekum): Currently we assume that cache been resized in accordance
     // with the size of input during initialization phase. Otherwise, a proper
     // cache must be introduced.
-    if (nullptr == qsym::cachedReadExpressions[offset]) {
+    if (nullptr == symcc::cachedReadExpressions[offset]) {
         SymExpr se = registerExpression(g_expr_builder->createRead(offset));
-        qsym::cachedReadExpressions[offset] = se;
+        symcc::cachedReadExpressions[offset] = se;
         return se;
     }
-    return qsym::cachedReadExpressions[offset];
+    return symcc::cachedReadExpressions[offset];
 }
 
 SymExpr _sym_concat_helper(SymExpr a, SymExpr b) {
@@ -354,7 +354,7 @@ SymExpr _sym_build_bool_to_bits(SymExpr expr, uint8_t bits) {
 }
 
 //
-// Floating-point operations (unsupported in Qsym)
+// Floating-point operations (unsupported in Symcc)
 //
 
 #define UNSUPPORTED(prototype)                                                 \

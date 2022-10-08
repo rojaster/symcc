@@ -109,7 +109,7 @@ program reads from standard input is treated as symbolic; alternatively, you can
 set the environment variable SYMCC_INPUT_FILE to the name of a file whose
 contents will be treated as symbolic when read.
 
-Note that due to how the QSYM backend is implemented, all input has to be available
+Note that due to how the SymCC backend is implemented, all input has to be available
 from the start. In particular, when providing symbolic data on standard input
 interactively, you need to terminate your input by pressing Ctrl+D before the
 program starts to execute.
@@ -140,8 +140,7 @@ On YouTube you can find [a practical introduction to SymCC](https://www.youtube.
 
 ## Building a Docker image
 
-If you prefer a Docker container over building SymCC natively, just tell Docker
-to build the image after pulling the QSYM code as above. (Be warned though: the
+If you prefer a Docker container over building SymCC natively, j. (Be warned though: the
 Docker image enables optional C++ support from source, so creating
 the image can take quite some time!)
 
@@ -152,7 +151,7 @@ $ docker run -it --rm symcc
 
 This will build a Docker image and run an ephemeral container to try out SymCC.
 Inside the container, `symcc` is available as a drop-in replacement for `clang`,
-using the QSYM backend; similarly, `sym++` can be used instead of `clang++`. Now
+using the SymCC backend; similarly, `sym++` can be used instead of `clang++`. Now
 try something like the following inside the container:
 
 ```
@@ -177,10 +176,10 @@ many cases it is sufficient to let the build system figure out what to rebuild
 
 ### Development & Test in docker environment 
 
-Building only required stage `builder_qsym` for development and testing:
+Building only required stage `builder_symc` for development and testing:
 
 ```
-docker build --target builder_qsym -t <label:ver> -f Dockerfile .
+docker build --target builder_symc -t <label:ver> -f Dockerfile .
 docker run -it --rm -v $PWD:/symcc_source <label:ver> /bin/bash
 ```
 Here we built the necessary stage and ran a new container, mounting the source 
@@ -205,9 +204,9 @@ There are multiple possible reasons:
 #### QSym backend performs pruning
 
 > QSYM is no more in use here. All necessary files are copied directly into
-> qsym_backend folder.
+> symc_backend folder.
 
-When built with the QSym backend exploration (e.g., loops) symcc is
+When built with the SymCC backend exploration (e.g., loops) symcc is
 subject to path pruning, this is part of the optimizations that makes
 SymCC/QSym fast, it isn't sound. This is not a problem for using in
 hybrid fuzzing, but this may be a problem for other uses. See for
@@ -293,5 +292,5 @@ licenses, and/or restrictions:
 
 | Program | Directory                   | Status |
 | ---     | ---                         | --- |
-| QSYM    | `runtime/qsym_backend/`     | Certain files been copied directly    |
+| QSYM    | `runtime/symc_backend/`     | Certain files been copied directly    |
 

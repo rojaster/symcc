@@ -12,13 +12,13 @@
 # You should have received a copy of the GNU General Public License along with
 # SymCC. If not, see <https://www.gnu.org/licenses/>.
 
-# Build the parts of the Qsym backend that are relevant for us
+# Build the parts of the Symcc backend that are relevant for us
 
 find_package(LLVM REQUIRED CONFIG)
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 
-# Qsym doesn't work with old versions of Z3
+# Symcc doesn't work with old versions of Z3
 find_package(Z3 4.5 CONFIG)
 if (NOT Z3_FOUND)
   if (NOT Z3_TRUST_SYSTEM_VERSION)
@@ -56,12 +56,12 @@ target_include_directories(SymRuntime PRIVATE
 
 target_include_directories(SymRuntime SYSTEM PRIVATE
   ${Z3_CXX_INCLUDE_DIRS}        # for Z3 support
-  ${QSYM_SOURCE_DIR})
+  ${SYMCC_SOURCE_DIR})
 
 # We need to get the LLVM support component for llvm::APInt.
-llvm_map_components_to_libnames(QSYM_LLVM_DEPS support)
+llvm_map_components_to_libnames(SYMCC_LLVM_DEPS support)
 
-target_link_libraries(SymRuntime ${Z3_LIBRARIES} ${QSYM_LLVM_DEPS})
+target_link_libraries(SymRuntime ${Z3_LIBRARIES} ${SYMCC_LLVM_DEPS})
 
 # We use std::filesystem, which has been added in C++17. Before its official
 # inclusion in the standard library, Clang shipped the feature first in

@@ -1,7 +1,7 @@
 #include "range.h"
 
-namespace qsym {
-  RangeSet RangeSet::intersectLT(llvm::APInt value, llvm::APInt adjustment) {
+namespace symcc {
+RangeSet RangeSet::intersectLT(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
     llvm::APSInt min = BV_.GetMinValue();
@@ -11,9 +11,9 @@ namespace qsym {
     --upper;
 
     return intersect(lower, upper);
-  }
+}
 
-  RangeSet RangeSet::intersectLE(llvm::APInt value, llvm::APInt adjustment) {
+RangeSet RangeSet::intersectLE(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
     llvm::APSInt min = BV_.GetMinValue();
@@ -21,9 +21,9 @@ namespace qsym {
     llvm::APSInt lower = min - adj;
     llvm::APSInt upper = val - adj;
     return intersect(lower, upper);
-  }
+}
 
-  RangeSet RangeSet::intersectGT(llvm::APInt value, llvm::APInt adjustment) {
+RangeSet RangeSet::intersectGT(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
     llvm::APSInt max = BV_.GetMaxValue();
@@ -32,9 +32,9 @@ namespace qsym {
     ++lower;
     llvm::APSInt upper = max - adj;
     return intersect(lower, upper);
-  }
+}
 
-  RangeSet RangeSet::intersectGE(llvm::APInt value, llvm::APInt adjustment) {
+RangeSet RangeSet::intersectGE(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
     llvm::APSInt max = BV_.GetMaxValue();
@@ -42,18 +42,18 @@ namespace qsym {
     llvm::APSInt lower = val - adj;
     llvm::APSInt upper = max - adj;
     return intersect(lower, upper);
-  }
+}
 
-  RangeSet RangeSet::intersectEQ(llvm::APInt value, llvm::APInt adjustment) {
+RangeSet RangeSet::intersectEQ(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
 
     llvm::APSInt lower = val - adj;
     llvm::APSInt upper = val - adj;
     return intersect(lower, upper);
-  }
+}
 
-  RangeSet RangeSet::intersectNE(llvm::APInt value, llvm::APInt adjustment) {
+RangeSet RangeSet::intersectNE(llvm::APInt value, llvm::APInt adjustment) {
     llvm::APSInt adj = BV_.getValue(adjustment);
     llvm::APSInt val = BV_.getValue(value);
 
@@ -62,5 +62,5 @@ namespace qsym {
     llvm::APSInt upper = val - adj;
     --upper;
     return intersect(lower, upper);
-  }
-} // namespace qsym
+}
+} // namespace symcc
