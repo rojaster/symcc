@@ -33,7 +33,7 @@ git submodule update
 #  build
 mkdir ../symcc-build
 cd ../symcc-build
-cmake -G Ninja -DQSYM_BACKEND=ON  -DZ3_TRUST_SYSTEM_VERSION=on ../symcc
+cmake -G Ninja -DSYMCC_BACKEND=ON  -DZ3_TRUST_SYSTEM_VERSION=on ../symcc
 ninja check
 
 # create a test case 

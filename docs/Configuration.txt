@@ -20,7 +20,7 @@ We list all available options for each stage in turn.
 
 Each of these is passed to CMake with "-D" when configuring the build:
 
-- QSYM_BACKEND=ON/OFF (default OFF): Compile either the QSYM backend or our
+- SYMCC_BACKEND=ON/OFF (default OFF): Compile either the QSYM backend or our
   simple Z3 wrapper (see docs/Backends.txt for details). Note that binaries
   produced by the SymCC compiler are backend-agnostic; you can use
   LD_LIBRARY_PATH to switch between backends per execution.

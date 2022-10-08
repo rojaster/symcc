@@ -16,7 +16,7 @@ cmake_minimum_required(VERSION 3.5)
 project(SymbolicCompiler)
 set(CMAKE_CXX_STANDARD 17)
 
-option(QSYM_BACKEND "Use the Qsym backend instead of our own" OFF)
+option(SYMCC_BACKEND "Use the Qsym backend instead of our own" ON)
 option(TARGET_32BIT "Make the compiler work correctly with -m32" OFF)
 
 # We need to build the runtime as an external project because CMake otherwise
@@ -40,7 +40,7 @@ set(SYM_RUNTIME_BUILD_ARGS
   -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}
   -DCMAKE_SHARED_LINKER_FLAGS_INIT=${CMAKE_SHARED_LINKER_FLAGS_INIT}
   -DCMAKE_SYSROOT=${CMAKE_SYSROOT}
-  -DQSYM_BACKEND=${QSYM_BACKEND}
+  -DSYMCC_BACKEND=${SYMCC_BACKEND}
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DZ3_TRUST_SYSTEM_VERSION=${Z3_TRUST_SYSTEM_VERSION})
 

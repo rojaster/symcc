@@ -41,7 +41,7 @@ Create a build directory somewhere, and execute the following commands inside
 it:
 
 ```
-$ cmake -G Ninja -DQSYM_BACKEND=ON /path/to/compiler/sources
+$ cmake -G Ninja -DSYMCC_BACKEND=ON /path/to/compiler/sources
 $ cmake --build .
 ```
 

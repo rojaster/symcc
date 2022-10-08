@@ -15,7 +15,7 @@ requirement on a backend is that it be a shared library with the expected name
 that implements the interface defined in runtime/RuntimeCommon.h (with type
 "SymExpr" defined to be something of pointer width).
 
-Depending on the build option QSYM_BACKEND we build either our own backend or
+Depending on the build option SYMCC_BACKEND we build either our own backend or
 parts of QSYM (which are pulled in via a git submodule) and a small translation
 layer. The code used by both backends is in the directory "runtime", while the
 specific parts are in "runtime/simple" and "runtime/qsym".
