@@ -167,7 +167,7 @@ void _sym_initialize(void) {
         perror("Cannot open an input file\n");
         exit(-1);
     }
-    std::vector<UINT8> input(std::istreambuf_iterator<char>(ifs), {});
+    std::vector<uint8_t> input(std::istreambuf_iterator<char>(ifs), {});
     symcc::cachedReadExpressions.resize(input.size());
     std::cerr << "Read input data from " << g_config.inputFile
               << ", size: " << input.size() << std::endl;

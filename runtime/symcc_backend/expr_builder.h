@@ -14,13 +14,13 @@ class ExprBuilder {
 
     // {BEGIN:FUNC}
     virtual ExprRef createBool(bool b);
-    virtual ExprRef createConstant(ADDRINT value, UINT32 bits);
-    virtual ExprRef createConstant(llvm::APInt value, UINT32 bits);
+    virtual ExprRef createConstant(ADDRINT value, uint32_t bits);
+    virtual ExprRef createConstant(llvm::APInt value, uint32_t bits);
     virtual ExprRef createRead(ADDRINT off);
     virtual ExprRef createConcat(ExprRef l, ExprRef r);
-    virtual ExprRef createExtract(ExprRef e, UINT32 index, UINT32 bits);
-    virtual ExprRef createZExt(ExprRef e, UINT32 bits);
-    virtual ExprRef createSExt(ExprRef e, UINT32 bits);
+    virtual ExprRef createExtract(ExprRef e, uint32_t index, uint32_t bits);
+    virtual ExprRef createZExt(ExprRef e, uint32_t bits);
+    virtual ExprRef createSExt(ExprRef e, uint32_t bits);
     virtual ExprRef createAdd(ExprRef l, ExprRef r);
     virtual ExprRef createSub(ExprRef l, ExprRef r);
     virtual ExprRef createMul(ExprRef l, ExprRef r);
@@ -60,12 +60,12 @@ class ExprBuilder {
     ExprRef createLsb(ExprRef);
 
     ExprRef bitToBool(ExprRef e);
-    ExprRef boolToBit(ExprRef e, UINT32 bits);
+    ExprRef boolToBit(ExprRef e, uint32_t bits);
     ExprRef createBinaryExpr(Kind kind, ExprRef l, ExprRef r);
     ExprRef createUnaryExpr(Kind kind, ExprRef e);
     ExprRef createConcat(std::list<ExprRef> exprs);
     ExprRef createLAnd(std::list<ExprRef> exprs);
-    ExprRef createTrunc(ExprRef e, UINT32 bits);
+    ExprRef createTrunc(ExprRef e, uint32_t bits);
 
   protected:
     ExprBuilder* next_;
@@ -73,16 +73,16 @@ class ExprBuilder {
 
 class BaseExprBuilder : public ExprBuilder {
   public:
-    ExprRef createExtract(ExprRef e, UINT32 index, UINT32 bits) override;
+    ExprRef createExtract(ExprRef e, uint32_t index, uint32_t bits) override;
     ExprRef createRead(ADDRINT off) override;
 
     // {BEGIN:BASE}
     ExprRef createBool(bool b) override;
-    ExprRef createConstant(ADDRINT value, UINT32 bits) override;
-    ExprRef createConstant(llvm::APInt value, UINT32 bits) override;
+    ExprRef createConstant(ADDRINT value, uint32_t bits) override;
+    ExprRef createConstant(llvm::APInt value, uint32_t bits) override;
     ExprRef createConcat(ExprRef l, ExprRef r) override;
-    ExprRef createZExt(ExprRef e, UINT32 bits) override;
-    ExprRef createSExt(ExprRef e, UINT32 bits) override;
+    ExprRef createZExt(ExprRef e, uint32_t bits) override;
+    ExprRef createSExt(ExprRef e, uint32_t bits) override;
     ExprRef createAdd(ExprRef l, ExprRef r) override;
     ExprRef createSub(ExprRef l, ExprRef r) override;
     ExprRef createMul(ExprRef l, ExprRef r) override;
@@ -120,9 +120,9 @@ class CacheExprBuilder : public ExprBuilder {
   public:
     // {BEGIN:CACHE}
     ExprRef createConcat(ExprRef l, ExprRef r) override;
-    ExprRef createExtract(ExprRef e, UINT32 index, UINT32 bits) override;
-    ExprRef createZExt(ExprRef e, UINT32 bits) override;
-    ExprRef createSExt(ExprRef e, UINT32 bits) override;
+    ExprRef createExtract(ExprRef e, uint32_t index, uint32_t bits) override;
+    ExprRef createZExt(ExprRef e, uint32_t bits) override;
+    ExprRef createSExt(ExprRef e, uint32_t bits) override;
     ExprRef createAdd(ExprRef l, ExprRef r) override;
     ExprRef createSub(ExprRef l, ExprRef r) override;
     ExprRef createMul(ExprRef l, ExprRef r) override;
@@ -191,8 +191,8 @@ class CommonSimplifyExprBuilder : public ExprBuilder {
     // expression builder for common simplification
   public:
     ExprRef createConcat(ExprRef l, ExprRef r) override;
-    ExprRef createExtract(ExprRef e, UINT32 index, UINT32 bits) override;
-    ExprRef createZExt(ExprRef e, UINT32 bits) override;
+    ExprRef createExtract(ExprRef e, uint32_t index, uint32_t bits) override;
+    ExprRef createZExt(ExprRef e, uint32_t bits) override;
     ExprRef createAdd(ExprRef l, ExprRef r) override;
     ExprRef createMul(ExprRef, ExprRef) override;
     ExprRef createAnd(ExprRef, ExprRef) override;
@@ -212,9 +212,9 @@ class CommonSimplifyExprBuilder : public ExprBuilder {
 class ConstantFoldingExprBuilder : public ExprBuilder {
   public:
     ExprRef createConcat(ExprRef l, ExprRef r) override;
-    ExprRef createExtract(ExprRef e, UINT32 index, UINT32 bits) override;
-    ExprRef createZExt(ExprRef e, UINT32 bits) override;
-    ExprRef createSExt(ExprRef e, UINT32 bits) override;
+    ExprRef createExtract(ExprRef e, uint32_t index, uint32_t bits) override;
+    ExprRef createZExt(ExprRef e, uint32_t bits) override;
+    ExprRef createSExt(ExprRef e, uint32_t bits) override;
     ExprRef createAdd(ExprRef l, ExprRef r) override;
     ExprRef createSub(ExprRef l, ExprRef r) override;
     ExprRef createMul(ExprRef l, ExprRef r) override;
@@ -267,7 +267,7 @@ class SymbolicExprBuilder : public ExprBuilder {
     ExprRef createLNot(ExprRef e);
     ExprRef createIte(ExprRef expr_cond, ExprRef expr_true,
                       ExprRef expr_false) override;
-    ExprRef createExtract(ExprRef op, UINT32 index, UINT32 bits) override;
+    ExprRef createExtract(ExprRef op, uint32_t index, uint32_t bits) override;
 
     static ExprBuilder* create();
 
@@ -292,8 +292,8 @@ class SymbolicExprBuilder : public ExprBuilder {
 class PruneExprBuilder : public ExprBuilder {
   public:
     // {BEGIN:FUZZ}
-    ExprRef createZExt(ExprRef e, UINT32 bits) override;
-    ExprRef createSExt(ExprRef e, UINT32 bits) override;
+    ExprRef createZExt(ExprRef e, uint32_t bits) override;
+    ExprRef createSExt(ExprRef e, uint32_t bits) override;
     ExprRef createAdd(ExprRef l, ExprRef r) override;
     ExprRef createSub(ExprRef l, ExprRef r) override;
     ExprRef createMul(ExprRef l, ExprRef r) override;

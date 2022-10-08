@@ -2,7 +2,6 @@
 #define SYMCC_LOGGING_H_
 
 #include "compiler.h"
-#include "pin.H"
 #include <cstdarg>
 #include <stdio.h>
 #include <stdlib.h>

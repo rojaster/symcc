@@ -8,7 +8,7 @@
     - [ ] remove global cachedReadExpressions
     - [ ] remove global allocatedExpressions
     - [ ] clean up global namespace and organize symcc namespace properly
-    - [ ] remove obsolete includes(currently we can remove pin.H)
+    - [X] ~~remove obsolete includes(currently we can remove pin.H)~~
     - [ ] Split h,cc files properly
     - [ ] run and fix clang-tidy issues
 

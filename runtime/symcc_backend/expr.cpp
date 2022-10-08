@@ -84,7 +84,7 @@ bool isNegatableKind(Kind kind) {
     }
 }
 
-bool isZeroBit(ExprRef e, UINT32 idx) {
+bool isZeroBit(ExprRef e, uint32_t idx) {
     if (ConstantExprRef ce = castAs<ConstantExpr>(e))
         return !ce->value()[idx];
     if (auto ce = castAs<ConcatExpr>(e)) {
@@ -96,7 +96,7 @@ bool isZeroBit(ExprRef e, UINT32 idx) {
     return false; // otherwise return false
 }
 
-bool isOneBit(ExprRef e, UINT32 idx) {
+bool isOneBit(ExprRef e, uint32_t idx) {
     if (ConstantExprRef ce = castAs<ConstantExpr>(e))
         return ce->value()[idx];
     if (auto ce = castAs<ConcatExpr>(e)) {
@@ -134,15 +134,15 @@ bool isConstant(ExprRef e) { return e->kind() == Constant; }
 bool isConstSym(ExprRef e) {
     if (e->num_children() != 2)
         return false;
-    for (UINT32 i = 0; i < 2; i++) {
+    for (uint32_t i = 0; i < 2; i++) {
         if (isConstant(e->getChild(i)) && !isConstant(e->getChild(1 - i)))
             return true;
     }
     return false;
 }
 
-UINT32 getMSB(ExprRef e) {
-    UINT32 i = 0;
+uint32_t getMSB(ExprRef e) {
+    uint32_t i = 0;
     assert(e->bits() >= 1);
     for (i = e->bits() - 1; i-- > 0;) {
         if (!isZeroBit(e, i))
@@ -153,11 +153,11 @@ UINT32 getMSB(ExprRef e) {
 }
 
 // Expr declaration
-Expr::Expr(Kind kind, UINT32 bits)
+Expr::Expr(Kind kind, uint32_t bits)
     : kind_(kind), bits_(bits), children_(), context_(*g_z3_context),
       expr_(NULL), hash_(NULL), range_sets{}, isConcrete_(true),
-      isInvalidated_(false), depth_(-1), deps_(NULL), leading_zeros_((UINT)-1),
-      evaluation_(NULL) {}
+      isInvalidated_(false), depth_(-1), deps_(NULL),
+      leading_zeros_((unsigned int)-1), evaluation_(NULL) {}
 
 Expr::~Expr() {
     delete expr_;
@@ -190,11 +190,11 @@ XXH32_hash_t Expr::hash() {
     return *hash_;
 }
 
-INT32 Expr::depth() {
+int32_t Expr::depth() {
     if (depth_ == -1) {
-        INT32 max_depth = 0;
+        int32_t max_depth = 0;
         for (size_t i = 0; i < num_children(); i++) {
-            INT32 child_depth = getChild(i)->depth();
+            int32_t child_depth = getChild(i)->depth();
             if (child_depth > max_depth)
                 max_depth = child_depth;
         }
@@ -203,7 +203,7 @@ INT32 Expr::depth() {
     return depth_;
 }
 
-void Expr::print(ostream& os, UINT depth) const {
+void Expr::print(std::ostream& os, unsigned int depth) const {
     os << getName() << "[" << (isConcrete_ ? "c" : "s") << "](";
     bool begin = !printAux(os);
     printChildren(os, begin, depth);
@@ -211,7 +211,7 @@ void Expr::print(ostream& os, UINT depth) const {
 }
 
 void Expr::printConstraints() {
-    for (UINT32 i = 0; i < 2; i++) {
+    for (uint32_t i = 0; i < 2; i++) {
         RangeSet* rs = getRangeSet(i);
         if (rs) {
             std::cerr << "\t " << (i ? "unsigned" : "signed") << ":";
@@ -244,7 +244,8 @@ void Expr::simplify() {
     }
 }
 
-void Expr::printChildren(ostream& os, bool start, UINT depth) const {
+void Expr::printChildren(std::ostream& os, bool start,
+                         unsigned int depth) const {
     for (size_t i = 0; i < num_children(); i++) {
         if (start)
             start = false;
@@ -355,11 +356,12 @@ void Expr::addConstraint(Kind kind, llvm::APInt rhs, llvm::APInt adjustment) {
     // }
 }
 
-void ConstantExpr::print(ostream& os, [[maybe_unused]] UINT depth) const {
+void ConstantExpr::print(std::ostream& os,
+                         [[maybe_unused]] unsigned int depth) const {
     os << "0x" << value_.toString(16, false);
 }
 
-void ConcatExpr::print(ostream& os, UINT depth) const {
+void ConcatExpr::print(std::ostream& os, unsigned int depth) const {
     bool start = true;
     for (size_t i = 0; i < num_children(); i++) {
         if (start)
@@ -370,7 +372,8 @@ void ConcatExpr::print(ostream& os, UINT depth) const {
     }
 }
 
-void BinaryExpr::print(ostream& os, UINT depth, const char* op) const {
+void BinaryExpr::print(std::ostream& os, unsigned int depth,
+                       const char* op) const {
     ExprRef c0 = getChild(0);
     ExprRef c1 = getChild(1);
     bool c0_const = c0->isConstant();
@@ -391,31 +394,31 @@ void BinaryExpr::print(ostream& os, UINT depth, const char* op) const {
         os << ")";
 }
 
-void AddExpr::print(ostream& os, UINT depth) const {
+void AddExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "+");
 }
 
-void SubExpr::print(ostream& os, UINT depth) const {
+void SubExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "-");
 }
 
-void MulExpr::print(ostream& os, UINT depth) const {
+void MulExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "*");
 }
 
-void SDivExpr::print(ostream& os, UINT depth) const {
+void SDivExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "/_s");
 }
 
-void UDivExpr::print(ostream& os, UINT depth) const {
+void UDivExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "/_u");
 }
 
-void SRemExpr::print(ostream& os, UINT depth) const {
+void SRemExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "%_s");
 }
 
-void URemExpr::print(ostream& os, UINT depth) const {
+void URemExpr::print(std::ostream& os, unsigned int depth) const {
     BinaryExpr::print(os, depth, "%_u");
 }
 

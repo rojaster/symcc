@@ -11,7 +11,7 @@ const size_t kCacheSize = 1024;
 struct WeakExprRefHash {
     XXH32_hash_t operator()(const WeakExprRef e) const {
         assert(!e.expired());
-        return const_pointer_cast<Expr>(e.lock())->hash();
+        return std::const_pointer_cast<Expr>(e.lock())->hash();
     }
 };
 
@@ -34,7 +34,7 @@ class ExprCache {
     ExprRef find(ExprRef e);
 
   protected:
-    UINT32 limit_;
+    uint32_t limit_;
     WeakExprRefSet set_;
     WeakExprRefQueue queue_;
 

@@ -61,7 +61,7 @@
         "locale": "cpp",
         "mutex": "cpp",
         "new": "cpp",
-        "ostream": "cpp",
+        "std::ostream": "cpp",
         "queue": "cpp",
         "ratio": "cpp",
         "sstream": "cpp",

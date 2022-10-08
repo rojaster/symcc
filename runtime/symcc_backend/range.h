@@ -2,17 +2,13 @@
 #define SYMCC_RANGE_H_
 
 // NOTE: some code is from lib/StaticAnalysis/Core/RangeConstraintManager.cpp
-#include "pin.H"
-#include <cassert>
-#include <iostream>
-#include <llvm/ADT/APSInt.h>
-#include <set>
+#include "common.h"
 
 namespace symcc {
 
 class BitVectorFactory {
   public:
-    BitVectorFactory(bool is_unsigned, UINT32 bit_width)
+    BitVectorFactory(bool is_unsigned, uint32_t bit_width)
         : is_unsigned_(is_unsigned), bit_width_(bit_width) {}
 
     inline bool isUnsigned() const { return is_unsigned_; }
@@ -35,11 +31,11 @@ class BitVectorFactory {
         return llvm::APSInt::getMinValue(bit_width_, is_unsigned_);
     }
 
-    UINT32 bit_width() const { return bit_width_; }
+    uint32_t bit_width() const { return bit_width_; }
 
   protected:
     bool is_unsigned_;
-    UINT32 bit_width_;
+    uint32_t bit_width_;
 };
 
 class Range : public std::pair<const llvm::APSInt, const llvm::APSInt> {
@@ -70,22 +66,22 @@ class RangeSet {
     RangeSet(BitVectorFactory BV, PrimRangeSet ranges)
         : BV_(BV), ranges_(ranges) {}
 
-    RangeSet(bool is_unsigned, INT32 bit_width)
+    RangeSet(bool is_unsigned, int32_t bit_width)
         : RangeSet(BitVectorFactory(is_unsigned, bit_width)) {}
 
     iterator begin() const { return ranges_.begin(); }
     iterator end() const { return ranges_.end(); }
-    UINT32 size() {
+    uint32_t size() {
         if (BV_.bit_width() > sizeof(ADDRINT) * CHAR_BIT)
             return INT_MAX / 2; // cannot get value, so return maximum value
 
-        UINT32 res = 0;
+        uint32_t res = 0;
         for (iterator i = begin(), e = end(); i != e; ++i)
             res += (i->To() - i->From()).getZExtValue() + 1;
         return res;
     }
 
-    UINT32 num_intervals() { return ranges_.size(); }
+    uint32_t num_intervals() { return ranges_.size(); }
 
   protected:
     BitVectorFactory BV_;
@@ -158,7 +154,7 @@ class RangeSet {
 
     void print() const { print(std::cerr); }
 
-    void print(ostream& os) const {
+    void print(std::ostream& os) const {
         bool isFirst = true;
         os << "{ ";
         for (iterator i = begin(), e = end(); i != e; ++i) {

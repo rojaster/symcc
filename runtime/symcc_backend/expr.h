@@ -96,7 +96,7 @@ bool isNegatableKind(Kind kind);
 template <class T>
 inline std::shared_ptr<T> castAs(ExprRef e) {
     if (T::classOf(*e))
-        return static_pointer_cast<T>(e);
+        return std::static_pointer_cast<T>(e);
     else
         return NULL;
 }
@@ -104,7 +104,7 @@ inline std::shared_ptr<T> castAs(ExprRef e) {
 template <class T>
 inline std::shared_ptr<T> castAsNonNull(ExprRef e) {
     assert(T::classOf(*e));
-    return static_pointer_cast<T>(e);
+    return std::static_pointer_cast<T>(e);
 }
 
 template <class T>
@@ -238,7 +238,7 @@ class DependencyForest {
 
 class Expr {
   public:
-    Expr(Kind kind, UINT32 bits);
+    Expr(Kind kind, uint32_t bits);
     virtual ~Expr();
     Expr(const Expr& that) = delete;
 
@@ -246,9 +246,9 @@ class Expr {
 
     Kind kind() const { return kind_; }
 
-    UINT32 bits() const { return bits_; }
+    uint32_t bits() const { return bits_; }
 
-    UINT32 bytes() const {
+    uint32_t bytes() const {
         // utility function to convert from bits to bytes
         assert(bits() % CHAR_BIT == 0);
         return bits() / CHAR_BIT;
@@ -266,7 +266,7 @@ class Expr {
 
     inline ExprRef getRight() const { return getSecondChild(); }
 
-    INT32 depth();
+    int32_t depth();
 
     inline void inval() { isInvalidated_ = true; }
 
@@ -296,14 +296,15 @@ class Expr {
 
     DependencySet computeDependencies();
 
-    UINT32 countLeadingZeros() {
-        if (leading_zeros_ == (UINT32)-1)
+    uint32_t countLeadingZeros() {
+        if (leading_zeros_ == (uint32_t)-1)
             leading_zeros_ = _countLeadingZeros();
         return leading_zeros_;
     }
-    virtual UINT32 _countLeadingZeros() const { return 0; }
-    virtual void print(ostream& os = std::cerr, UINT depth = 0) const;
-    friend ostream& operator<<(ostream& os, const Expr& e) {
+    virtual uint32_t _countLeadingZeros() const { return 0; }
+    virtual void print(std::ostream& os = std::cerr,
+                       unsigned int depth = 0) const;
+    friend std::ostream& operator<<(std::ostream& os, const Expr& e) {
         os << e.toString();
         return os;
     }
@@ -438,7 +439,7 @@ class Expr {
 
   protected:
     Kind kind_;
-    UINT32 bits_;
+    uint32_t bits_;
     std::vector<ExprRef> children_;
     z3::context& context_;
     z3::expr* expr_;
@@ -449,15 +450,17 @@ class Expr {
     bool isConcrete_;
     bool isInvalidated_;
 
-    INT32 depth_;
+    int32_t depth_;
     DependencySet* deps_;
     WeakExprRefVector uses_;
-    UINT32 leading_zeros_;
+    uint32_t leading_zeros_;
     ExprRef evaluation_;
 
-    void printChildren(ostream& os, bool start, UINT depth) const;
+    void printChildren(std::ostream& os, bool start, unsigned int depth) const;
 
-    virtual bool printAux([[maybe_unused]] ostream& os) const { return false; }
+    virtual bool printAux([[maybe_unused]] std::ostream& os) const {
+        return false;
+    }
 
     void addConstraint(RangeSet& rs, Kind kind, llvm::APInt& rhs,
                        llvm::APInt& adjustment);
@@ -476,10 +479,10 @@ class Expr {
 
 class ConstantExpr : public Expr {
   public:
-    ConstantExpr(ADDRINT value, UINT32 bits)
+    ConstantExpr(ADDRINT value, uint32_t bits)
         : Expr(Constant, bits), value_(bits, value) {}
 
-    ConstantExpr(const llvm::APInt& value, UINT32 bits)
+    ConstantExpr(const llvm::APInt& value, uint32_t bits)
         : Expr(Constant, bits), value_(value) {}
 
     inline llvm::APInt value() const { return value_; }
@@ -487,23 +490,23 @@ class ConstantExpr : public Expr {
     inline bool isOne() const { return value_ == 1; }
     inline bool isAllOnes() const { return value_.isAllOnesValue(); }
     static bool classOf(const Expr& e) { return e.kind() == Constant; }
-    UINT32 getActiveBits() const { return value_.getActiveBits(); }
-    void print(ostream& os, UINT depth) const override;
-    UINT32 _countLeadingZeros() const override {
+    uint32_t getActiveBits() const { return value_.getActiveBits(); }
+    void print(std::ostream& os, unsigned int depth) const override;
+    uint32_t _countLeadingZeros() const override {
         return value_.countLeadingZeros();
     }
 
   protected:
     std::string getName() const override { return "Constant"; }
 
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "value=0x" << value_.toString(16, false) << ", bits=" << bits_;
         return true;
     }
 
     z3::expr toZ3ExprRecursively([[maybe_unused]] bool verbose) override {
         if (value_.getNumWords() == 1)
-            return context_.bv_val((__uint64)value_.getZExtValue(), bits_);
+            return context_.bv_val((uint64_t)value_.getZExtValue(), bits_);
         else
             return context_.bv_val(value_.toString(10, false).c_str(), bits_);
     }
@@ -531,7 +534,8 @@ class NonConstantExpr : public Expr {
 
 class UnaryExpr : public NonConstantExpr {
   public:
-    UnaryExpr(Kind kind, ExprRef e, UINT32 bits) : NonConstantExpr(kind, bits) {
+    UnaryExpr(Kind kind, ExprRef e, uint32_t bits)
+        : NonConstantExpr(kind, bits) {
         addChild(e);
     }
     UnaryExpr(Kind kind, ExprRef e) : UnaryExpr(kind, e, e->bits()) {}
@@ -544,7 +548,7 @@ class UnaryExpr : public NonConstantExpr {
 
 class BinaryExpr : public NonConstantExpr {
   public:
-    BinaryExpr(Kind kind, ExprRef l, ExprRef r, UINT32 bits)
+    BinaryExpr(Kind kind, ExprRef l, ExprRef r, uint32_t bits)
         : NonConstantExpr(kind, bits) {
         addChild(l);
         addChild(r);
@@ -554,7 +558,7 @@ class BinaryExpr : public NonConstantExpr {
     BinaryExpr(Kind kind, ExprRef l, ExprRef r)
         : BinaryExpr(kind, l, r, l->bits()) {}
 
-    void print(ostream& os, UINT depth, const char* op) const;
+    void print(std::ostream& os, unsigned int depth, const char* op) const;
 
   protected:
     ExprRef evaluateImpl() override;
@@ -586,7 +590,7 @@ class BoolExpr : public NonConstantExpr {
   protected:
     std::string getName() const override { return "Bool"; }
 
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "value=" << value_;
         return true;
     }
@@ -622,7 +626,7 @@ class ReadExpr : public NonConstantExpr {
     static bool classOf(const Expr& e) { return e.kind() == Read; }
 
   protected:
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "ptr=" << this << ", idx=" << index_;
         return true;
     }
@@ -657,13 +661,13 @@ class ConcatExpr : public NonConstantExpr {
         addChild(r);
     }
 
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
     std::string getName() const override { return "Concat"; }
 
     static bool classOf(const Expr& e) { return e.kind() == Concat; }
-    UINT32 _countLeadingZeros() const override {
-        UINT32 result = getChild(0)->countLeadingZeros();
+    uint32_t _countLeadingZeros() const override {
+        uint32_t result = getChild(0)->countLeadingZeros();
         if (result == getChild(0)->bits())
             result += getChild(1)->countLeadingZeros();
         return result;
@@ -680,19 +684,19 @@ class ConcatExpr : public NonConstantExpr {
 
 class ExtractExpr : public UnaryExpr {
   public:
-    ExtractExpr(ExprRef e, UINT32 index, UINT32 bits)
+    ExtractExpr(ExprRef e, uint32_t index, uint32_t bits)
         : UnaryExpr(Extract, e, bits), index_(index) {
         assert(bits + index <= e->bits());
     }
 
-    UINT32 index() const { return index_; }
+    uint32_t index() const { return index_; }
     ExprRef expr() const { return getFirstChild(); }
     static bool classOf(const Expr& e) { return e.kind() == Extract; }
 
   protected:
     std::string getName() const override { return "Extract"; }
 
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "index=" << index_ << ", bits=" << bits_;
         return true;
     }
@@ -713,7 +717,7 @@ class ExtractExpr : public UnaryExpr {
 
     ExprRef evaluateImpl() override;
 
-    UINT32 index_;
+    uint32_t index_;
 };
 
 class ExtExpr : public UnaryExpr {
@@ -728,12 +732,12 @@ class ExtExpr : public UnaryExpr {
 
 class ZExtExpr : public ExtExpr {
   public:
-    ZExtExpr(ExprRef e, UINT32 bits) : ExtExpr(ZExt, e, bits) {}
+    ZExtExpr(ExprRef e, uint32_t bits) : ExtExpr(ZExt, e, bits) {}
 
     std::string getName() const override { return "ZExt"; }
 
     static bool classOf(const Expr& e) { return e.kind() == ZExt; }
-    UINT32 _countLeadingZeros() const override {
+    uint32_t _countLeadingZeros() const override {
         return bits_ - getChild(0)->bits();
     }
 
@@ -745,7 +749,7 @@ class ZExtExpr : public ExtExpr {
         return z3::zext(e->toZ3Expr(verbose), bits_ - e->bits());
     }
 
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "bits=" << bits_;
         return true;
     }
@@ -755,14 +759,14 @@ class ZExtExpr : public ExtExpr {
 
 class SExtExpr : public ExtExpr {
   public:
-    SExtExpr(ExprRef e, UINT32 bits) : ExtExpr(SExt, e, bits) {}
+    SExtExpr(ExprRef e, uint32_t bits) : ExtExpr(SExt, e, bits) {}
 
     std::string getName() const override { return "SExt"; }
 
     static bool classOf(const Expr& e) { return e.kind() == SExt; }
 
   protected:
-    bool printAux(ostream& os) const override {
+    bool printAux(std::ostream& os) const override {
         os << "bits=" << bits_;
         return true;
     }
@@ -886,7 +890,7 @@ class AddExpr : public LinearBinaryExpr {
     AddExpr(ExprRef l, ExprRef h) : LinearBinaryExpr(Add, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == Add; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "Add"; }
@@ -911,7 +915,8 @@ class SubExpr : public LinearBinaryExpr {
                children_[1]->toZ3Expr(verbose);
     }
 
-    void print(ostream& os = std::cerr, UINT depth = 0) const override;
+    void print(std::ostream& os = std::cerr,
+               unsigned int depth = 0) const override;
 };
 
 class MulExpr : public NonLinearBinaryExpr {
@@ -919,7 +924,7 @@ class MulExpr : public NonLinearBinaryExpr {
     MulExpr(ExprRef l, ExprRef h) : NonLinearBinaryExpr(Mul, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == Mul; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "Mul"; }
@@ -935,7 +940,7 @@ class UDivExpr : public NonLinearBinaryExpr {
     UDivExpr(ExprRef l, ExprRef h) : NonLinearBinaryExpr(UDiv, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == UDiv; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "UDiv"; }
@@ -951,7 +956,7 @@ class SDivExpr : public NonLinearBinaryExpr {
     SDivExpr(ExprRef l, ExprRef h) : NonLinearBinaryExpr(SDiv, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == SDiv; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "SDiv"; }
@@ -967,7 +972,7 @@ class URemExpr : public NonLinearBinaryExpr {
     URemExpr(ExprRef l, ExprRef h) : NonLinearBinaryExpr(URem, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == URem; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "URem"; }
@@ -983,7 +988,7 @@ class SRemExpr : public NonLinearBinaryExpr {
     SRemExpr(ExprRef l, ExprRef h) : NonLinearBinaryExpr(SRem, l, h) {}
 
     static bool classOf(const Expr& e) { return e.kind() == SRem; }
-    void print(ostream& os, UINT depth) const override;
+    void print(std::ostream& os, unsigned int depth) const override;
 
   protected:
     std::string getName() const override { return "SRem"; }
@@ -1232,12 +1237,12 @@ class IteExpr : public NonConstantExpr {
 };
 
 // utility functions
-bool isZeroBit(ExprRef e, UINT32 idx);
-bool isOneBit(ExprRef e, UINT32 idx);
+bool isZeroBit(ExprRef e, uint32_t idx);
+bool isOneBit(ExprRef e, uint32_t idx);
 bool isRelational(const Expr* e);
 bool isConstant(ExprRef e);
 bool isConstSym(ExprRef e);
-UINT32 getMSB(ExprRef e);
+uint32_t getMSB(ExprRef e);
 
 } // namespace symcc
 #endif // SYMCC_EXPR_H_

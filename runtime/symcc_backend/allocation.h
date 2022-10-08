@@ -1,9 +1,7 @@
 #ifndef SYMCC_ALLOCATION_H_
 #define SYMCC_ALLOCATION_H_
 
-#include "logging.h"
-#include <sys/mman.h>
-
+#include "common.h"
 namespace symcc {
 
 void* allocPages(size_t, int);

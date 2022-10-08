@@ -2,16 +2,15 @@
 #include <iostream>
 
 #include "logging.h"
-#include "pin.H"
 #include "solver.h"
 
 namespace symcc {
 
 /// Return the hex representation of a number.
 template <typename T>
-string hexstr(T arg) {
-    stringstream stream;
-    stream << hex << arg;
+std::string hexstr(T arg) {
+    std::stringstream stream;
+    stream << std::hex << arg;
     return stream.str();
 }
 

@@ -10,7 +10,7 @@ namespace {
 const uint64_t kUsToS = 1000000;
 const unsigned kSolverTimeout = 10000; // 10 seconds
 
-std::string toString6digit(INT32 val) {
+std::string toString6digit(int32_t val) {
     char buf[7]; // ndigit + 1
     snprintf(buf, 7, "%06d", val);
     buf[6] = '\0';
@@ -25,7 +25,7 @@ uint64_t getTimeStamp() {
 
 void parseConstSym(ExprRef e, Kind& op, ExprRef& expr_sym,
                    ExprRef& expr_const) {
-    for (INT32 i = 0; i < 2; i++) {
+    for (int32_t i = 0; i < 2; i++) {
         expr_sym = e->getChild(i);
         expr_const = e->getChild(1 - i);
         if (!isConstant(expr_sym) && isConstant(expr_const)) {
@@ -49,7 +49,8 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
         if (isConstant(first)) {
             *canonical = second;
             if (adjustment != NULL)
-                *adjustment = static_pointer_cast<ConstantExpr>(first)->value();
+                *adjustment =
+                    std::static_pointer_cast<ConstantExpr>(first)->value();
             return;
         case Sub:
             // C_0 - Sym
@@ -60,7 +61,7 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
                 *canonical = g_expr_builder->createNeg(second);
                 if (adjustment != NULL)
                     *adjustment =
-                        static_pointer_cast<ConstantExpr>(first)->value();
+                        std::static_pointer_cast<ConstantExpr>(first)->value();
                 return;
             }
         }
@@ -78,7 +79,7 @@ inline bool isEqual(ExprRef e, bool taken) {
 
 } // namespace
 
-Solver::Solver(const std::vector<UINT8>& ibuf, const std::string out_dir,
+Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
                const std::string bitmap)
     : inputs_(ibuf), out_dir_(out_dir), context_(*g_z3_context),
       solver_(z3::solver(context_, "QF_BV")), num_generated_(0), trace_(bitmap),
@@ -258,7 +259,7 @@ void Solver::solveAll(ExprRef e, llvm::APInt val) {
     addValue(e, val);
 }
 
-UINT8 Solver::getInput(ADDRINT index) {
+uint8_t Solver::getInput(ADDRINT index) {
     assert(index < inputs_.size());
     return inputs_[index];
 }
@@ -267,11 +268,11 @@ UINT8 Solver::getInput(ADDRINT index) {
 // as copying bunch of data here and there is quite
 // costly operations. Probably, returning just
 // touched bytes in our case more than enough...
-std::vector<UINT8> Solver::getConcreteValues() {
+std::vector<uint8_t> Solver::getConcreteValues() {
     // TODO: change from real input
     z3::model m = solver_.get_model();
     unsigned num_constants = m.num_consts();
-    std::vector<UINT8> values = inputs_;
+    std::vector<uint8_t> values = inputs_;
     for (unsigned i = 0; i < num_constants; i++) {
         z3::func_decl decl = m.get_const_decl(i);
         z3::expr e = m.get_const_interp(decl);
@@ -279,7 +280,7 @@ std::vector<UINT8> Solver::getConcreteValues() {
 
         if (name.kind() == Z3_INT_SYMBOL) {
             int value = e.get_numeral_int();
-            values[name.to_int()] = (UINT8)value;
+            values[name.to_int()] = (uint8_t)value;
         }
     }
     return values;
@@ -288,7 +289,7 @@ std::vector<UINT8> Solver::getConcreteValues() {
 void Solver::saveValues(const std::string& postfix) {
     z3::model m = solver_.get_model();
     unsigned num_constants = m.num_consts();
-    std::vector<UINT8> values = inputs_;
+    std::vector<uint8_t> values = inputs_;
     for (unsigned i = 0; i < num_constants; i++) {
         z3::func_decl decl = m.get_const_decl(i);
         z3::expr e = m.get_const_interp(decl);
@@ -296,7 +297,7 @@ void Solver::saveValues(const std::string& postfix) {
 
         if (name.kind() == Z3_INT_SYMBOL) {
             int value = e.get_numeral_int();
-            values[name.to_int()] = (UINT8)value;
+            values[name.to_int()] = (uint8_t)value;
         }
     }
 
@@ -310,7 +311,7 @@ void Solver::saveValues(const std::string& postfix) {
     // Add postfix to record where it is genereated
     if (!postfix.empty())
         fname = fname + "-" + postfix;
-    ofstream of(fname, std::ofstream::out | std::ofstream::binary);
+    std::ofstream of(fname, std::ofstream::out | std::ofstream::binary);
     LOG_INFO("New testcase: " + fname + "\n");
     if (of.fail()) {
         perror("Unable to open a file to write results\n");
@@ -318,13 +319,13 @@ void Solver::saveValues(const std::string& postfix) {
         return;
     }
 
-    std::copy(values.begin(), values.end(), ostreambuf_iterator<char>(of));
+    std::copy(values.begin(), values.end(), std::ostreambuf_iterator<char>(of));
 
     of.close();
     num_generated_++;
 }
 
-void Solver::printValues(const std::vector<UINT8>& values) {
+void Solver::printValues(const std::vector<uint8_t>& values) {
     fprintf(stderr, "[INFO] Values: ");
     for (unsigned i = 0; i < values.size(); i++) {
         fprintf(stderr, "\\x%02X", values[i]);
@@ -409,7 +410,7 @@ void Solver::syncConstraints(ExprRef e) {
             } else {
                 // Process range-based constraints
                 bool valid = false;
-                for (INT32 i = 0; i < 2; i++) {
+                for (int32_t i = 0; i < 2; i++) {
                     // @Cleanup(alekum): Check if we could get rid of it
                     // call...
                     ExprRef expr_range = getRangeConstraint(node, i);
@@ -456,7 +457,8 @@ bool Solver::addRangeConstraint(ExprRef e, bool taken) {
     ExprRef canonical = NULL;
     llvm::APInt adjustment;
     getCanonicalExpr(expr_sym, &canonical, &adjustment);
-    llvm::APInt value = static_pointer_cast<ConstantExpr>(expr_const)->value();
+    llvm::APInt value =
+        std::static_pointer_cast<ConstantExpr>(expr_const)->value();
 
     if (!taken)
         kind = negateKind(kind);

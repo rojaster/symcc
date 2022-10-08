@@ -30,7 +30,8 @@ bool isAllOnes(ExprRef e) {
 
 } // namespace
 
-bool canEvaluateTruncated(ExprRef e, UINT bits, UINT depth = 0) {
+bool canEvaluateTruncated(ExprRef e, unsigned int bits,
+                          unsigned int depth = 0) {
     if (depth > 1)
         return false;
 
@@ -42,7 +43,7 @@ bool canEvaluateTruncated(ExprRef e, UINT bits, UINT depth = 0) {
                canEvaluateTruncated(e->getChild(1), depth + 1);
     case UDiv:
     case URem: {
-        UINT high_bits = e->bits() - bits;
+        unsigned int high_bits = e->bits() - bits;
         if (e->getChild(0)->countLeadingZeros() >= high_bits &&
             e->getChild(1)->countLeadingZeros() >= high_bits) {
             return canEvaluateTruncated(e->getChild(0), depth + 1) &&
@@ -58,8 +59,8 @@ bool canEvaluateTruncated(ExprRef e, UINT bits, UINT depth = 0) {
     }
 }
 
-ExprRef evaluateInDifferentType(ExprBuilder* builder, ExprRef op, UINT32 index,
-                                UINT32 bits) {
+ExprRef evaluateInDifferentType(ExprBuilder* builder, ExprRef op,
+                                uint32_t index, uint32_t bits) {
     // TODO: recursive evaluation
     switch (op->kind()) {
     default:
@@ -124,7 +125,7 @@ ExprRef ExprBuilder::bitToBool(ExprRef e) {
     return createEqual(e, one);
 }
 
-ExprRef ExprBuilder::boolToBit(ExprRef e, UINT32 bits) {
+ExprRef ExprBuilder::boolToBit(ExprRef e, uint32_t bits) {
     ExprRef e1 = createConstant(1, bits);
     ExprRef e0 = createConstant(0, bits);
     return createIte(e, e1, e0);
@@ -158,7 +159,7 @@ ExprRef ExprBuilder::createLAnd(std::list<ExprRef> exprs) {
     return e;
 }
 
-ExprRef ExprBuilder::createTrunc(ExprRef e, UINT32 bits) {
+ExprRef ExprBuilder::createTrunc(ExprRef e, uint32_t bits) {
     return createExtract(e, 0, bits);
 }
 
@@ -166,7 +167,8 @@ ExprRef BaseExprBuilder::createRead(ADDRINT off) {
     return std::make_shared<ReadExpr>(off);
 }
 
-ExprRef BaseExprBuilder::createExtract(ExprRef e, UINT32 index, UINT32 bits) {
+ExprRef BaseExprBuilder::createExtract(ExprRef e, uint32_t index,
+                                       uint32_t bits) {
     if (bits == e->bits())
         return e;
     ExprRef ref = std::make_shared<ExtractExpr>(e, index, bits);
@@ -225,8 +227,8 @@ ExprRef CommonSimplifyExprBuilder::createConcat(ExprRef l, ExprRef r) {
     return ExprBuilder::createConcat(l, r);
 }
 
-ExprRef CommonSimplifyExprBuilder::createExtract(ExprRef e, UINT32 index,
-                                                 UINT32 bits) {
+ExprRef CommonSimplifyExprBuilder::createExtract(ExprRef e, uint32_t index,
+                                                 uint32_t bits) {
     if (auto ce = castAs<ConcatExpr>(e)) {
         // skips right part
         if (index >= ce->getRight()->bits())
@@ -263,7 +265,7 @@ ExprRef CommonSimplifyExprBuilder::createExtract(ExprRef e, UINT32 index,
     return ExprBuilder::createExtract(e, index, bits);
 }
 
-ExprRef CommonSimplifyExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef CommonSimplifyExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     // allow shrinking
     if (e->bits() > bits)
         return createExtract(e, 0, bits);
@@ -523,7 +525,7 @@ ExprRef ConstantFoldingExprBuilder::createConcat(ExprRef l, ExprRef r) {
     ConstantExprRef ce_r = castAs<ConstantExpr>(r);
 
     if (ce_l != NULL && ce_r != NULL) {
-        UINT32 bits = ce_l->bits() + ce_r->bits();
+        uint32_t bits = ce_l->bits() + ce_r->bits();
         llvm::APInt lval = ce_l->value().zext(bits);
         llvm::APInt rval = ce_r->value().zext(bits);
         llvm::APInt res = (lval << ce_r->bits()) | rval;
@@ -545,8 +547,8 @@ ExprRef ConstantFoldingExprBuilder::createIte(ExprRef expr_cond,
     return ExprBuilder::createIte(expr_cond, expr_true, expr_false);
 }
 
-ExprRef ConstantFoldingExprBuilder::createExtract(ExprRef e, UINT32 index,
-                                                  UINT32 bits) {
+ExprRef ConstantFoldingExprBuilder::createExtract(ExprRef e, uint32_t index,
+                                                  uint32_t bits) {
     if (ConstantExprRef ce = castAs<ConstantExpr>(e)) {
         llvm::APInt v = ce->value().lshr(index);
         v = v.zextOrTrunc(bits);
@@ -555,14 +557,14 @@ ExprRef ConstantFoldingExprBuilder::createExtract(ExprRef e, UINT32 index,
         return ExprBuilder::createExtract(e, index, bits);
 }
 
-ExprRef ConstantFoldingExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef ConstantFoldingExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     if (ConstantExprRef ce = castAs<ConstantExpr>(e)) {
         return createConstant(ce->value().zext(bits), bits);
     } else
         return ExprBuilder::createZExt(e, bits);
 }
 
-ExprRef ConstantFoldingExprBuilder::createSExt(ExprRef e, UINT32 bits) {
+ExprRef ConstantFoldingExprBuilder::createSExt(ExprRef e, uint32_t bits) {
     if (ConstantExprRef ce = castAs<ConstantExpr>(e)) {
         return createConstant(ce->value().sext(bits), bits);
     } else
@@ -607,8 +609,8 @@ ExprRef SymbolicExprBuilder::createConcat(ExprRef l, ExprRef r) {
     return ExprBuilder::createConcat(l, r);
 }
 
-ExprRef SymbolicExprBuilder::createExtract(ExprRef op, UINT32 index,
-                                           UINT32 bits) {
+ExprRef SymbolicExprBuilder::createExtract(ExprRef op, uint32_t index,
+                                           uint32_t bits) {
     // Only byte-wise simplification
     if (index == 0 && bits % 8 == 0 && canEvaluateTruncated(op, bits)) {
         if (ExprRef e = evaluateInDifferentType(this, op, index, bits))
@@ -622,14 +624,14 @@ ExprRef SymbolicExprBuilder::simplifyExclusiveExpr(ExprRef l, ExprRef r) {
     // (bvor (concat x #x00) (concat #x00 y)) --> (concat x y)
     // (bvadd (concat x #x00) (concat #x00 y)) --> (concat x y)
 
-    for (UINT i = 0; i < l->bits(); i++)
+    for (unsigned int i = 0; i < l->bits(); i++)
         if (!isZeroBit(l, i) && !isZeroBit(r, i))
             return NULL;
 
     std::list<ExprRef> exprs;
-    UINT32 i = 0;
+    uint32_t i = 0;
     while (i < l->bits()) {
-        UINT32 prev = i;
+        uint32_t prev = i;
         while (i < l->bits() && isZeroBit(l, i))
             i++;
         if (i != prev)
@@ -1103,11 +1105,11 @@ ExprBuilder* PruneExprBuilder::create() {
 
 ExprRef ExprBuilder::createBool(bool b) { return next_->createBool(b); }
 
-ExprRef ExprBuilder::createConstant(ADDRINT value, UINT32 bits) {
+ExprRef ExprBuilder::createConstant(ADDRINT value, uint32_t bits) {
     return next_->createConstant(value, bits);
 }
 
-ExprRef ExprBuilder::createConstant(llvm::APInt value, UINT32 bits) {
+ExprRef ExprBuilder::createConstant(llvm::APInt value, uint32_t bits) {
     return next_->createConstant(value, bits);
 }
 
@@ -1117,15 +1119,15 @@ ExprRef ExprBuilder::createConcat(ExprRef l, ExprRef r) {
     return next_->createConcat(l, r);
 }
 
-ExprRef ExprBuilder::createExtract(ExprRef e, UINT32 index, UINT32 bits) {
+ExprRef ExprBuilder::createExtract(ExprRef e, uint32_t index, uint32_t bits) {
     return next_->createExtract(e, index, bits);
 }
 
-ExprRef ExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef ExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     return next_->createZExt(e, bits);
 }
 
-ExprRef ExprBuilder::createSExt(ExprRef e, UINT32 bits) {
+ExprRef ExprBuilder::createSExt(ExprRef e, uint32_t bits) {
     return next_->createSExt(e, bits);
 }
 
@@ -1319,13 +1321,13 @@ ExprRef BaseExprBuilder::createBool(bool b) {
     return ref;
 }
 
-ExprRef BaseExprBuilder::createConstant(ADDRINT value, UINT32 bits) {
+ExprRef BaseExprBuilder::createConstant(ADDRINT value, uint32_t bits) {
     ExprRef ref = std::make_shared<ConstantExpr>(value, bits);
     addUses(ref);
     return ref;
 }
 
-ExprRef BaseExprBuilder::createConstant(llvm::APInt value, UINT32 bits) {
+ExprRef BaseExprBuilder::createConstant(llvm::APInt value, uint32_t bits) {
     ExprRef ref = std::make_shared<ConstantExpr>(value, bits);
     addUses(ref);
     return ref;
@@ -1337,13 +1339,13 @@ ExprRef BaseExprBuilder::createConcat(ExprRef l, ExprRef r) {
     return ref;
 }
 
-ExprRef BaseExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef BaseExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     ExprRef ref = std::make_shared<ZExtExpr>(e, bits);
     addUses(ref);
     return ref;
 }
 
-ExprRef BaseExprBuilder::createSExt(ExprRef e, UINT32 bits) {
+ExprRef BaseExprBuilder::createSExt(ExprRef e, uint32_t bits) {
     ExprRef ref = std::make_shared<SExtExpr>(e, bits);
     addUses(ref);
     return ref;
@@ -1529,17 +1531,18 @@ ExprRef CacheExprBuilder::createConcat(ExprRef l, ExprRef r) {
     return findOrInsert(new_expr);
 }
 
-ExprRef CacheExprBuilder::createExtract(ExprRef e, UINT32 index, UINT32 bits) {
+ExprRef CacheExprBuilder::createExtract(ExprRef e, uint32_t index,
+                                        uint32_t bits) {
     ExprRef new_expr = ExprBuilder::createExtract(e, index, bits);
     return findOrInsert(new_expr);
 }
 
-ExprRef CacheExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef CacheExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     ExprRef new_expr = ExprBuilder::createZExt(e, bits);
     return findOrInsert(new_expr);
 }
 
-ExprRef CacheExprBuilder::createSExt(ExprRef e, UINT32 bits) {
+ExprRef CacheExprBuilder::createSExt(ExprRef e, uint32_t bits) {
     ExprRef new_expr = ExprBuilder::createSExt(e, bits);
     return findOrInsert(new_expr);
 }
@@ -2091,7 +2094,7 @@ ExprRef ConstantFoldingExprBuilder::createXor(ExprRef l, ExprRef r) {
         return ExprBuilder::createXor(l, r);
 }
 
-ExprRef PruneExprBuilder::createZExt(ExprRef e, UINT32 bits) {
+ExprRef PruneExprBuilder::createZExt(ExprRef e, uint32_t bits) {
     ExprRef ref = ExprBuilder::createZExt(e, bits);
     g_call_stack_manager.updateBitmap();
     if (g_call_stack_manager.isInteresting())
@@ -2100,7 +2103,7 @@ ExprRef PruneExprBuilder::createZExt(ExprRef e, UINT32 bits) {
         return ref->evaluate();
 }
 
-ExprRef PruneExprBuilder::createSExt(ExprRef e, UINT32 bits) {
+ExprRef PruneExprBuilder::createSExt(ExprRef e, uint32_t bits) {
     ExprRef ref = ExprBuilder::createSExt(e, bits);
     g_call_stack_manager.updateBitmap();
     if (g_call_stack_manager.isInteresting())

@@ -23,7 +23,7 @@ XXH32_hash_t hashPc(ADDRINT pc, bool taken) {
 
     // pc -= IMG_LowAddress(img);
 
-    // UINT32 img_id = IMG_Id(img);
+    // uint32_t img_id = IMG_Id(img);
     XXH32_state_t state;
     XXH32_reset(&state, 0); // seed = 0
     XXH32_update(&state, &pc, sizeof(pc));
@@ -35,9 +35,9 @@ XXH32_hash_t hashPc(ADDRINT pc, bool taken) {
 } // namespace
 
 void AflTraceMap::allocMap() {
-    trace_map_ = (UINT8*)safeMalloc(kMapSize);
-    virgin_map_ = (UINT8*)safeMalloc(kMapSize);
-    context_map_ = (UINT8*)safeMalloc(kMapSize);
+    trace_map_ = (uint8_t*)safeMalloc(kMapSize);
+    virgin_map_ = (uint8_t*)safeMalloc(kMapSize);
+    context_map_ = (uint8_t*)safeMalloc(kMapSize);
     memset(virgin_map_, 0, kMapSize);
 }
 
@@ -47,8 +47,8 @@ void AflTraceMap::setDefault() {
 }
 
 void AflTraceMap::import(const std::string path) {
-    ifstream ifs;
-    ifs.open(path, ios::binary);
+    std::ifstream ifs;
+    ifs.open(path, std::ios::binary);
     if (ifs.fail()) {
         LOG_DEBUG("cannot read a file, so use a default trace map\n");
         setDefault();
@@ -102,8 +102,8 @@ bool AflTraceMap::isInterestingContext(ADDRINT h, ADDRINT bits) {
 
 void AflTraceMap::commit() {
     if (!path_.empty()) {
-        ofstream ofs;
-        ofs.open(path_, ios::binary);
+        std::ofstream ofs;
+        ofs.open(path_, std::ios::binary);
         if (ofs.fail())
             LOG_FATAL("Unable to open a bitmap to commit");
         ofs.write((char*)trace_map_, kMapSize);

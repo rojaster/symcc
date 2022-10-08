@@ -1,10 +1,9 @@
 #ifndef SYMCC_CALL_STACK_MANAGER_H
 #define SYMCC_CALL_STACK_MANAGER_H
 
+#include "common.h"
 #include <cstdint>
 #include <vector>
-
-#include "common.h"
 
 namespace symcc {
 class CallStackManager {

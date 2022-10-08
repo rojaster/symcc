@@ -7,8 +7,6 @@
 #include <sys/types.h>
 #include <z3++.h>
 
-#include "pin.H"
-
 #include "afl_trace_map.h"
 #include "expr.h"
 // #include "thread_context.h"
@@ -22,7 +20,7 @@ extern z3::context* g_z3_context;
 
 class Solver {
   public:
-    Solver(const std::vector<UINT8>& ibuf, const std::string out_dir,
+    Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
            const std::string bitmap);
 
     void push();
@@ -38,18 +36,18 @@ class Solver {
     void addValue(ExprRef, ADDRINT);
     void addValue(ExprRef, llvm::APInt);
     void solveAll(ExprRef, llvm::APInt);
-    UINT8 getInput(ADDRINT index);
+    uint8_t getInput(ADDRINT index);
 
     ADDRINT last_pc() { return last_pc_; }
 
   protected:
     std::string input_file_;
-    std::vector<UINT8> inputs_;
+    std::vector<uint8_t> inputs_;
     std::string out_dir_;
     z3::context& context_;
     z3::solver solver_;
     std::string session_;
-    INT32 num_generated_;
+    int32_t num_generated_;
     AflTraceMap trace_;
     bool last_interested_;
     bool syncing_;
@@ -58,9 +56,9 @@ class Solver {
     ADDRINT last_pc_;
     DependencyForest<Expr> dep_forest_;
 
-    std::vector<UINT8> getConcreteValues();
+    std::vector<uint8_t> getConcreteValues();
     void saveValues(const std::string& postfix);
-    void printValues(const std::vector<UINT8>& values);
+    void printValues(const std::vector<uint8_t>& values);
 
     z3::expr getPossibleValue(z3::expr& z3_expr);
     z3::expr getMinValue(z3::expr& z3_expr);

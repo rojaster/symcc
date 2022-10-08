@@ -21,19 +21,5 @@
 //
 
 // @FIXME(alekum) REMOVE THIS FILE AS WE NOT USING QSYM ANYMORE
-#include <cstdint>
-#include <sstream>
-#include <string>
-
-using namespace std;
-
-typedef uint8_t UINT8;
-typedef unsigned int USIZE;
-typedef unsigned int UINT;
-typedef int INT;
-typedef int32_t INT32;
-typedef uint32_t UINT32;
-typedef uint64_t __uint64;
-typedef uintptr_t ADDRINT;
 
 #endif

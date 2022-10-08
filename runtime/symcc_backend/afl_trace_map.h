@@ -4,11 +4,6 @@
 #define FFL(_b) (0xffULL << ((_b) << 3))
 #define FF(_b) (0xff << ((_b) << 3))
 
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <set>
-
 #include "common.h"
 
 namespace symcc {
@@ -18,9 +13,9 @@ class AflTraceMap {
   private:
     std::string path_;
     ADDRINT prev_loc_;
-    UINT8* trace_map_;
-    UINT8* virgin_map_;
-    UINT8* context_map_;
+    uint8_t* trace_map_;
+    uint8_t* virgin_map_;
+    uint8_t* context_map_;
     std::set<ADDRINT> visited_;
 
     void allocMap();

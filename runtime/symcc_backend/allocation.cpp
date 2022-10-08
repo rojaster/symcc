@@ -1,5 +1,4 @@
 #include "allocation.h"
-#include "pin.H"
 
 namespace symcc {
 
