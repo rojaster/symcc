@@ -264,7 +264,7 @@ class SymbolicExprBuilder : public ExprBuilder {
     ExprRef createDistinct(ExprRef l, ExprRef r) override;
     ExprRef createLOr(ExprRef l, ExprRef r) override;
     ExprRef createLAnd(ExprRef l, ExprRef r) override;
-    ExprRef createLNot(ExprRef e);
+    ExprRef createLNot(ExprRef e) override;
     ExprRef createIte(ExprRef expr_cond, ExprRef expr_true,
                       ExprRef expr_false) override;
     ExprRef createExtract(ExprRef op, uint32_t index, uint32_t bits) override;

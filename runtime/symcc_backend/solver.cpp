@@ -73,9 +73,11 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
     *canonical = e;
 }
 
-inline bool isEqual(ExprRef e, bool taken) {
+/*
+[[maybe_unused]] inline bool isEqual(ExprRef e, bool taken) {
     return (e->kind() == Equal && taken) || (e->kind() == Distinct && !taken);
 }
+*/
 
 } // namespace
 
@@ -110,7 +112,7 @@ z3::check_result Solver::check() {
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = end - start;
         std::cerr << "SMT :{ \"solving_time\" : " << elapsed.count() << " }\n";
-    } catch (z3::exception e) {
+    } catch (z3::exception& e) {
         // https://github.com/Z3Prover/z3/issues/419
         // timeout can cause exception
         res = z3::unknown;

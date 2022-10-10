@@ -169,7 +169,7 @@ Expr::~Expr() {
 
 DependencySet Expr::computeDependencies() {
     DependencySet deps;
-    for (const int& dep : getDeps())
+    for (const int dep : getDeps())
         deps.insert((size_t)dep);
     return deps;
 }
@@ -372,8 +372,8 @@ void ConcatExpr::print(std::ostream& os, unsigned int depth) const {
     }
 }
 
-void BinaryExpr::print(std::ostream& os, unsigned int depth,
-                       const char* op) const {
+void BinaryExpr::print_op(std::ostream& os, unsigned int depth,
+                          const char* op) const {
     ExprRef c0 = getChild(0);
     ExprRef c1 = getChild(1);
     bool c0_const = c0->isConstant();
@@ -395,31 +395,31 @@ void BinaryExpr::print(std::ostream& os, unsigned int depth,
 }
 
 void AddExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "+");
+    BinaryExpr::print_op(os, depth, "+");
 }
 
 void SubExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "-");
+    BinaryExpr::print_op(os, depth, "-");
 }
 
 void MulExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "*");
+    BinaryExpr::print_op(os, depth, "*");
 }
 
 void SDivExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "/_s");
+    BinaryExpr::print_op(os, depth, "/_s");
 }
 
 void UDivExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "/_u");
+    BinaryExpr::print_op(os, depth, "/_u");
 }
 
 void SRemExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "%_s");
+    BinaryExpr::print_op(os, depth, "%_s");
 }
 
 void URemExpr::print(std::ostream& os, unsigned int depth) const {
-    BinaryExpr::print(os, depth, "%_u");
+    BinaryExpr::print_op(os, depth, "%_u");
 }
 
 } // namespace symcc

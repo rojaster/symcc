@@ -35,7 +35,7 @@
 char SymbolizePassLegacy::ID = 0;
 
 bool SymbolizePassLegacy::doInitialization(llvm::Module& M) {
-    DEBUG(errs() << "Symbolizer module init\n");
+    DEBUG(llvm::errs() << "Symbolizer module init\n");
 
     // Redirect calls to external functions to the corresponding wrappers and
     // rename internal functions.

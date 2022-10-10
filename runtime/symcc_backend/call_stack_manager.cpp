@@ -10,7 +10,7 @@ static bool isPowerOfTwo(uint16_t x) { return (x & (x - 1)) == 0; }
 
 CallStackManager::CallStackManager()
     : call_stack_(), is_interesting_(true), bitmap_(new uint16_t[kBitmapSize]),
-      last_index_(0), pending_(false), last_pc_(0) {}
+      /*last_index_(0),*/ pending_(false), last_pc_(0) {}
 
 CallStackManager::~CallStackManager() { delete[] bitmap_; }
 

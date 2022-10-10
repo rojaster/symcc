@@ -22,7 +22,7 @@ class CallStackManager {
     XXH32_hash_t call_stack_hash_;
     bool is_interesting_;
     uint16_t* bitmap_;
-    uint32_t last_index_;
+    // [[maybe_unused]] uint32_t last_index_;
     bool pending_;
     ADDRINT last_pc_;
 

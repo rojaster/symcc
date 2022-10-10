@@ -558,7 +558,7 @@ class BinaryExpr : public NonConstantExpr {
     BinaryExpr(Kind kind, ExprRef l, ExprRef r)
         : BinaryExpr(kind, l, r, l->bits()) {}
 
-    void print(std::ostream& os, unsigned int depth, const char* op) const;
+    void print_op(std::ostream& os, unsigned int depth, const char* op) const;
 
   protected:
     ExprRef evaluateImpl() override;
