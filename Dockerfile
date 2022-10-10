@@ -20,14 +20,14 @@ FROM ubuntu:20.04 AS builder
 # Install dependencies
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    clang-10 \
+    clang-12 \
     cmake \
     g++ \
     git \
     libz3-dev \
     curl \
-    llvm-10-dev \
-    llvm-10-tools \
+    llvm-12-dev \
+    llvm-12-tools \
     ninja-build \
     python3 \
     python3-pip \
@@ -107,9 +107,9 @@ FROM ubuntu:20.04 AS production
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential \
-    clang-10 \
+    clang-12 \
     g++ \
-    libllvm10 \
+    libllvm12 \
     zlib1g \
     sudo \
     && rm -rf /var/lib/apt/lists/* \
@@ -124,6 +124,6 @@ COPY --from=builder_symcc /afl /afl
 
 ENV PATH /symcc_build:/root/.cargo/bin:$PATH
 ENV AFL_PATH /afl
-ENV AFL_CC clang-10
-ENV AFL_CXX clang++-10
+ENV AFL_CC clang-12
+ENV AFL_CXX clang++-12
 ENV SYMCC_LIBCXX_PATH=/libcxx_symcc_install

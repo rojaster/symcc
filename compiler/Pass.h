@@ -19,21 +19,22 @@
 #include <llvm/IR/ValueMap.h>
 #include <llvm/Pass.h>
 
-class SymbolizePass : public llvm::FunctionPass {
-public:
-  static char ID;
+class SymbolizePassLegacy : public llvm::FunctionPass {
+  public:
+    static char ID;
 
-  SymbolizePass() : FunctionPass(ID) {}
+    SymbolizePassLegacy() : FunctionPass(ID) {}
 
-  bool doInitialization(llvm::Module &M) override;
-  bool runOnFunction(llvm::Function &F) override;
+    bool doInitialization(llvm::Module& M) override;
+    bool runOnFunction(llvm::Function& F) override;
 
-private:
-  static constexpr char kSymCtorName[] = "__sym_ctor";
+  private:
+    static constexpr char kSymCtorName[] = "__sym_ctor";
 
-  /// Mapping from global variables to their corresponding symbolic expressions.
-  llvm::ValueMap<llvm::GlobalVariable *, llvm::GlobalVariable *>
-      globalExpressions;
+    /// Mapping from global variables to their corresponding symbolic
+    /// expressions.
+    llvm::ValueMap<llvm::GlobalVariable*, llvm::GlobalVariable*>
+        globalExpressions;
 };
 
 #endif
