@@ -170,7 +170,8 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
 
     if (is_interesting) {
 #if 1
-        std::cerr << "Interesting pc=0x" << std::hex << pc << std::endl;
+        std::cerr << "Interesting pc=0x" << std::hex << pc << ", negatePath;"
+                  << std::endl;
 #endif
         negatePath(e, taken);
     }
@@ -524,13 +525,19 @@ bool Solver::isInterestingJcc([[maybe_unused]] ExprRef rel_expr, bool taken,
 
 void Solver::negatePath(ExprRef e, bool taken) {
     reset();
+
+    auto start = std::chrono::steady_clock::now();
     syncConstraints(e);
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cerr << "SMT :{ \"sync_constraints_time\" : " << elapsed.count()
+              << " }\n";
+
     addToSolver(e, !taken);
     bool sat = checkAndSave();
 #if 1
     std::cerr << "====================== Z3 MODEL ===================\n";
     std::cerr << solver_.to_smt2() << std::endl;
-    std::cerr << solver_.get_model() << std::endl;
     std::cerr << "====================== Z3 MODEL ===================\n";
 #endif
     if (!sat) {

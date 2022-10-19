@@ -98,7 +98,7 @@ inline std::shared_ptr<T> castAs(ExprRef e) {
     if (T::classOf(*e))
         return std::static_pointer_cast<T>(e);
     else
-        return NULL;
+        return nullptr;
 }
 
 template <class T>
@@ -197,10 +197,10 @@ class DependencyForest {
 
     void addNode(std::shared_ptr<T> node) {
         dependency_set_type* deps = &node->getDeps();
-        reference tree = NULL;
+        reference tree = nullptr;
         for (const size_type& index : *deps) {
             reference other_tree = find(index);
-            if (tree == NULL)
+            if (tree == nullptr)
                 tree = other_tree;
             else if (tree != other_tree) {
                 tree->merge(*other_tree);
@@ -283,7 +283,7 @@ class Expr {
     bool isOne() const;
 
     DependencySet& getDeps() {
-        if (deps_ == NULL) {
+        if (deps_ == nullptr) {
             deps_ = new DependencySet();
             DependencySet& deps = *deps_;
             for (size_t i = 0; i < num_children(); i++) {
@@ -744,7 +744,7 @@ class ZExtExpr : public ExtExpr {
   protected:
     z3::expr toZ3ExprRecursively(bool verbose) override {
         ExprRef e = getChild(0);
-        if (isConcrete())
+        if (e->isConcrete())
             return evaluate()->toZ3Expr(verbose);
         return z3::zext(e->toZ3Expr(verbose), bits_ - e->bits());
     }
@@ -773,7 +773,7 @@ class SExtExpr : public ExtExpr {
 
     z3::expr toZ3ExprRecursively(bool verbose) override {
         ExprRef e = getChild(0);
-        if (isConcrete())
+        if (e->isConcrete())
             return evaluate()->toZ3Expr(verbose);
         return z3::sext(e->toZ3Expr(verbose), bits_ - e->bits());
     }

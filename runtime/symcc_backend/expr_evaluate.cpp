@@ -6,7 +6,7 @@ namespace symcc {
 // Use ConstantFoldingExprBuilder for evaluation
 static ExprBuilder* CEB = ConstantFoldingExprBuilder::create();
 
-ExprRef checkExpr(ExprRef e) {
+inline ExprRef checkExpr(ExprRef e) {
     Kind kind = e->kind();
     SYMCC_ASSERT(kind == Constant || kind == Bool);
     return e;

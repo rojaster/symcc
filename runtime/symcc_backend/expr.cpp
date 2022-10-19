@@ -204,7 +204,10 @@ int32_t Expr::depth() {
 }
 
 void Expr::print(std::ostream& os, unsigned int depth) const {
-    os << getName() << "[" << (isConcrete_ ? "c" : "s") << "](";
+    // @Info(alekum): Add more information to track state of Expr
+    // c - concrete, s -symbolic, i - invalidated, n - non-invalidated
+    os << getName() << "[" << (isConcrete_ ? 'c' : 's') << ':'
+       << (isInvalidated_ ? 'i' : 'n') << "](";
     bool begin = !printAux(os);
     printChildren(os, begin, depth);
     os << ")";
