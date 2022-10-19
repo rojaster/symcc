@@ -14,12 +14,18 @@
 
 ## In Progress
 
+- [ ] Fix a bug with invalidation of the symbolized/concretized expression
+    - [ ] try option without invalidated, regenerate z3 expression each time
+- [ ] Add input data dependency tests
 - [ ] Update dependencies in Dockerfile(compiler, 
 ubuntu version, etc)
-- [ ] LLVM10 -> LLVM latest. Fix API accordingly(Check AdaCC)
+    - [X] Use ubuntu 22.04 instead of 20.04
+    - [X] Use compilers: llvm-7,12 + gcc 11.2
+        - [ ] create new pass manager register hook because of llvm-13+(there is no LegacyPM anymore) 
+
 
 ## Completed
-
+- [X] ~~LLVM10 -> LLVM latest. Fix API accordingly(Check AdaCC)~~
 - [X] ~~New algorithm to make quick slicing for symbolic expressions~~
 - [X] ~~Fix std::tmpnam warning(Introduce buffer rather sending Filename to Solver)~~
 - [X] ~~Update rust helper accordingly, copy from AdaCC this part~~
