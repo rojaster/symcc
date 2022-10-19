@@ -59,8 +59,8 @@ bool SymbolizePassLegacy::runOnFunction(llvm::Function& F) {
     if (functionName == kSymCtorName)
         return false;
 
-    DEBUG(errs() << "Symbolizing function ");
-    DEBUG(errs().write_escaped(functionName) << '\n');
+    DEBUG(llvm::errs() << "Symbolizing function ");
+    DEBUG(llvm::errs().write_escaped(functionName) << '\n');
 
     llvm::SmallVector<llvm::Instruction*, 0> allInstructions;
     allInstructions.reserve(F.getInstructionCount());
@@ -79,8 +79,7 @@ bool SymbolizePassLegacy::runOnFunction(llvm::Function& F) {
     symbolizer.finalizePHINodes();
     symbolizer.shortCircuitExpressionUses();
 
-    // DEBUG(errs() << F << '\n');
-    assert(!verifyFunction(F, &errs()) &&
+    assert(!verifyFunction(F, &llvm::errs()) &&
            "SymbolizePass produced invalid bitcode");
 
     return true;
