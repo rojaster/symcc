@@ -268,7 +268,21 @@ class Expr {
 
     int32_t depth();
 
-    inline void inval() { isInvalidated_ = true; }
+    inline void inval() {
+        isInvalidated_ = true;
+        // @Info(alekum): We are invalidated, invalidate our users as well.
+        for (auto it = uses_.begin(); it != uses_.end(); it++) {
+            WeakExprRef& ref = *it;
+            if (!ref.expired()) {
+                // std::cerr << "Invalidating... " << ref.lock()->toString()
+                //           << std::endl;
+                if (!ref.lock()->isInvalidated()) {
+                    // std::cerr << "\t\tProcessed ^^^^\n";
+                    ref.lock()->inval();
+                }
+            }
+        }
+    }
 
     inline bool isInvalidated() const { return isInvalidated_; }
 
@@ -415,8 +429,9 @@ class Expr {
             isConcrete_ = true;
             for (auto it = uses_.begin(); it != uses_.end(); it++) {
                 WeakExprRef& ref = *it;
-                if (!ref.expired())
-                    ref.lock()->tryConcretize();
+                if (ref.expired())
+                    continue;
+                ref.lock()->tryConcretize();
             }
         }
     }
@@ -428,8 +443,13 @@ class Expr {
 
         for (size_t i = 0; i < num_children(); i++) {
             ExprRef e = getChild(i);
-            if (!e->isConcrete())
+            // std::cerr << "tryConcretize..." << e->toString() << std::endl;
+            if (!e->isConcrete()) {
+                // std::cerr << "\t\t\tnope - it is symbolic, no further "
+                //              "concretization, "
+                //              "probably we lost invalidation track\n";
                 return;
+            }
         }
 
         concretize();

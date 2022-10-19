@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     char str[2000];
     int fsize;
     int check=0, i;
-    FILE *fp = fopen(file, 'r');
+    FILE *fp = fopen(file, "r");
     fseek(fp, 0, SEEK_END);
     fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET);

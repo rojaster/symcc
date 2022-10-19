@@ -395,7 +395,7 @@ void Solver::syncConstraints(ExprRef e) {
     for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
         for (const auto it : tree->getDependencies()) {
             if (!symdeps.count(it)) {
-                symcc::cachedReadExpressions[it]->tryConcretize();
+                symcc::cachedReadExpressions[it]->concretize();
             }
         }
 
@@ -404,9 +404,12 @@ void Solver::syncConstraints(ExprRef e) {
             // and
             // processed ExprRef it means node is going to be fully
             // concretized, and we don't have to add them to solver anyway
+            std::cerr << "Processing ... " << node->toString() << std::endl;
             if (node->isConcrete()) {
+                std::cerr << "\t\tSkipppp ^^^^^\n";
                 continue;
             }
+            std::cerr << "\t\t Taken, add to solverrr ^^^^^\n";
 
             if (isRelational(node.get())) {
                 addToSolver(node, true);
@@ -415,7 +418,6 @@ void Solver::syncConstraints(ExprRef e) {
                 bool valid = false;
                 for (int32_t i = 0; i < 2; i++) {
                     // @Cleanup(alekum): Check if we could get rid of it
-                    // call...
                     ExprRef expr_range = getRangeConstraint(node, i);
                     if (expr_range != NULL) {
                         addToSolver(expr_range, true);
