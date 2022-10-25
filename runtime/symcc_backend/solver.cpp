@@ -7,10 +7,10 @@ namespace symcc {
 
 namespace {
 
-const uint64_t kUsToS = 1000000;
-const unsigned kSolverTimeout = 10000; // 10 seconds
+const
 
-std::string toString6digit(int32_t val) {
+    std::string
+    toString6digit(int32_t val) {
     char buf[7]; // ndigit + 1
     snprintf(buf, 7, "%06d", val);
     buf[6] = '\0';
@@ -70,11 +70,11 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
 } // namespace
 
 Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
-               const std::string bitmap)
+               const std::string bitmap, unsigned kSolverTimeout)
     : inputs_(ibuf), out_dir_(out_dir), context_(*g_z3_context),
       solver_(z3::solver(context_, "QF_BV")), trace_(bitmap),
       last_interested_(false), syncing_(false), last_pc_(0),
-      dep_forest_(ibuf.size() + 1), num_generated_(0), solving_time_(0) {
+      dep_forest_(ibuf.size() + 1), num_generated_(0) {
     // Set timeout for solver
     z3::params p(context_);
     p.set(":timeout", kSolverTimeout);
@@ -106,9 +106,9 @@ void Solver::add(z3::expr expr) {
 z3::check_result Solver::check() {
     z3::check_result res;
     try {
-        auto start = std::chrono::steady_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         res = solver_.check();
-        auto end = std::chrono::steady_clock::now();
+        auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
         std::cerr << "SMT :{ \"solving_time\" : " << elapsed.count() << " }\n";
     } catch (z3::exception& e) {

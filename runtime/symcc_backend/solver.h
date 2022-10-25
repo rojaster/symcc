@@ -22,7 +22,7 @@ extern z3::context* g_z3_context;
 class Solver {
   public:
     explicit Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
-                    const std::string bitmap);
+                    const std::string bitmap, unsigned kSolverTimeout);
     ~Solver() noexcept = default;
     Solver(const Solver&) = delete;
     Solver(Solver&&) = delete;
@@ -66,8 +66,6 @@ class Solver {
     // stats to be printed in print_stats method
     // turn into Solver::Stats?
     uint32_t num_generated_;
-    std::chrono::duration<double> solving_time_;
-
     // should we keep track of interesting pc so far?
     uint32_t num_of_negated_paths;
     uint32_t num_of_unsat;

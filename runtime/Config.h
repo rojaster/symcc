@@ -18,38 +18,41 @@
 #include <string>
 
 struct Config {
-  /// Should we allow symbolic data in the program?
-  bool fullyConcrete = false;
+    /// @brief Solver Timeout , by default 10 seconds
+    unsigned kSolverTimeout = 10000;
 
-  /// The directory for storing new outputs.
-  std::string outputDir = "/tmp/output";
+    /// Should we allow symbolic data in the program?
+    bool fullyConcrete = false;
 
-  /// The input file, if any.
-  std::string inputFile;
+    /// The directory for storing new outputs.
+    std::string outputDir = "/tmp/output";
 
-  /// The file to log constraint solving information to.
-  std::string logFile = "contraints.log";
+    /// The input file, if any.
+    std::string inputFile;
 
-  /// Do we prune expressions on hot paths?
-  bool pruning = false;
+    /// The file to log constraint solving information to.
+    std::string logFile = "contraints.log";
 
-  /// The AFL coverage map to initialize with.
-  ///
-  /// Specifying a file name here allows us to track already covered program
-  /// locations across multiple program executions.
-  std::string aflCoverageMap = "";
+    /// Do we prune expressions on hot paths?
+    bool pruning = false;
 
-  /// The garbage collection threshold.
-  ///
-  /// We will start collecting unused symbolic expressions if the total number
-  /// of allocated expressions in the target program exceeds this number.
-  ///
-  /// Collecting too often hurts performance, whereas delaying garbage
-  /// collection for too long might make us run out of memory. The goal of this
-  /// empirically determined constant is to keep peek memory consumption below
-  /// 2GB on most workloads because requiring that amount of memory per core
-  /// participating in the analysis seems reasonable.
-  size_t garbageCollectionThreshold = 5'000'000;
+    /// The AFL coverage map to initialize with.
+    ///
+    /// Specifying a file name here allows us to track already covered program
+    /// locations across multiple program executions.
+    std::string aflCoverageMap = "";
+
+    /// The garbage collection threshold.
+    ///
+    /// We will start collecting unused symbolic expressions if the total number
+    /// of allocated expressions in the target program exceeds this number.
+    ///
+    /// Collecting too often hurts performance, whereas delaying garbage
+    /// collection for too long might make us run out of memory. The goal of
+    /// this empirically determined constant is to keep peek memory consumption
+    /// below 2GB on most workloads because requiring that amount of memory per
+    /// core participating in the analysis seems reasonable.
+    size_t garbageCollectionThreshold = 5'000'000;
 };
 
 /// The global configuration object.
