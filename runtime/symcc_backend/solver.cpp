@@ -539,6 +539,7 @@ void Solver::negatePath(ExprRef e, bool taken) {
     bool sat = checkAndSave();
 #if 1
     std::cerr << "====================== Z3 MODEL ===================\n";
+    std::cerr << "Model Size :: " << solver_.get_model().size() << '\n';
     std::cerr << solver_.to_smt2() << std::endl;
     std::cerr << "====================== Z3 MODEL ===================\n";
 #endif

@@ -29,8 +29,6 @@ class SymbolizePassLegacy : public llvm::FunctionPass {
     bool runOnFunction(llvm::Function& F) override;
 
   private:
-    static constexpr char kSymCtorName[] = "__sym_ctor";
-
     /// Mapping from global variables to their corresponding symbolic
     /// expressions.
     llvm::ValueMap<llvm::GlobalVariable*, llvm::GlobalVariable*>

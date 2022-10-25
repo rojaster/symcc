@@ -48,7 +48,7 @@ bool SymbolizePassLegacy::doInitialization(llvm::Module& M) {
     // Insert a constructor that initializes the runtime and any globals.
     llvm::Function* ctor;
     std::tie(ctor, std::ignore) = createSanitizerCtorAndInitFunctions(
-        M, kSymCtorName, "_sym_initialize", {}, {});
+        M, "__sym_ctor", "_sym_initialize", {}, {});
     appendToGlobalCtors(M, ctor, 0);
 
     return true;
@@ -56,7 +56,7 @@ bool SymbolizePassLegacy::doInitialization(llvm::Module& M) {
 
 bool SymbolizePassLegacy::runOnFunction(llvm::Function& F) {
     auto functionName = F.getName();
-    if (functionName == kSymCtorName)
+    if (functionName == "__sym_ctor")
         return false;
 
     DEBUG(llvm::errs() << "Symbolizing function ");
