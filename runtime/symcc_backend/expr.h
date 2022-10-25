@@ -424,7 +424,8 @@ class Expr {
 
     /// Make Expr concrete and try to make every user of us concrete
     void concretize() {
-        inval();
+        inval(); // @TODO(alekum 26/10/2022) Sure that we should invalidate
+                 // here? what if it is concrete already?
         if (!isConcrete()) {
             isConcrete_ = true;
             for (auto it = uses_.begin(); it != uses_.end(); it++) {

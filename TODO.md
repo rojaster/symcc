@@ -3,7 +3,6 @@
 ## Backlog
 
 - [ ] Experiment with LLVM Optimizations
-- [ ] Experiment with quick symbolization/concretization phases
 - [ ] Clean up code
     - [ ] remove global cachedReadExpressions
     - [ ] remove global allocatedExpressions
@@ -16,6 +15,7 @@
 
 - [ ] Fix a bug with invalidation of the symbolized/concretized expression
     - [ ] try option without invalidated, regenerate z3 expression each time
+    - [ ] Invalidation should be either removed or re-checked(@see TODO expr.h::427)
 - [ ] Add input data dependency tests
 - [ ] Update dependencies in Dockerfile(compiler, 
 ubuntu version, etc)
@@ -25,6 +25,7 @@ ubuntu version, etc)
 
 
 ## Completed
+- [X] ~~Experiment with quick symbolization/concretization phases~~
 - [X] ~~LLVM10 -> LLVM latest. Fix API accordingly(Check AdaCC)~~
 - [X] ~~New algorithm to make quick slicing for symbolic expressions~~
 - [X] ~~Fix std::tmpnam warning(Introduce buffer rather sending Filename to Solver)~~

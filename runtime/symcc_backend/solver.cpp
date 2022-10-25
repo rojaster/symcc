@@ -17,12 +17,6 @@ std::string toString6digit(int32_t val) {
     return std::string(buf);
 }
 
-uint64_t getTimeStamp() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * kUsToS + tv.tv_usec;
-}
-
 void parseConstSym(ExprRef e, Kind& op, ExprRef& expr_sym,
                    ExprRef& expr_const) {
     for (int32_t i = 0; i < 2; i++) {
@@ -73,25 +67,30 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
     *canonical = e;
 }
 
-/*
-[[maybe_unused]] inline bool isEqual(ExprRef e, bool taken) {
-    return (e->kind() == Equal && taken) || (e->kind() == Distinct && !taken);
-}
-*/
-
 } // namespace
 
 Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
                const std::string bitmap)
     : inputs_(ibuf), out_dir_(out_dir), context_(*g_z3_context),
-      solver_(z3::solver(context_, "QF_BV")), num_generated_(0), trace_(bitmap),
-      last_interested_(false), syncing_(false), start_time_(getTimeStamp()),
-      solving_time_(0), last_pc_(0), dep_forest_(ibuf.size() + 1) {
+      solver_(z3::solver(context_, "QF_BV")), trace_(bitmap),
+      last_interested_(false), syncing_(false), last_pc_(0),
+      dep_forest_(ibuf.size() + 1), num_generated_(0), solving_time_(0) {
     // Set timeout for solver
     z3::params p(context_);
     p.set(":timeout", kSolverTimeout);
     solver_.set(p);
 }
+
+// Solver::~Solver() {
+//     // @TODO(alekum 26/10/2022) print_stats?
+//     std::cerr << "{ \"Stats\" : {\n"
+//               << "\t \"num_generated\" : " << num_generated_ << ","
+//               << "\t \"num_of_unsat\" : " << num_of_unsat << ","
+//               << "\t \"num_of_sat\" : " << num_of_sat << ","
+//               << "\t \"num_of_negated_paths\" : " << num_of_negated_paths
+//               << "\n}\n";
+//     std::cerr << std::endl;
+// }
 
 void Solver::push() { solver_.push(); }
 
@@ -125,7 +124,7 @@ bool Solver::checkAndSave(const std::string& postfix) {
         saveValues(postfix);
         return true;
     } else {
-        LOG_DEBUG("unsat\n");
+        std::cerr << ">> UNSAT\n";
         return false;
     }
 }
@@ -162,18 +161,14 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
         is_interesting = isInterestingJcc(e, taken, pc);
     }
 
-    // @Cleanup(alekum): if the idea with fast ReadExpr handling works, remove
-    // this part . We don't require such constraint anymore.
-    // if (e->isConcrete()) {
-    //    e->trySymbolize();
-    // }
-
     if (is_interesting) {
 #if 1
         std::cerr << "Interesting pc=0x" << std::hex << pc << ", negatePath;"
                   << std::endl;
 #endif
         negatePath(e, taken);
+        ++num_of_negated_paths;
+        num_of_sat = num_of_negated_paths - num_of_unsat;
     }
     addConstraint(e, taken, is_interesting);
 
@@ -379,6 +374,10 @@ void Solver::addToSolver(ExprRef e, bool taken) {
 void Solver::syncConstraints(ExprRef e) {
     std::set<std::shared_ptr<DependencyTree<Expr>>> forest;
     DependencySet& symdeps = e->getDeps();
+    // we cannot have more symbolic variables than symbolic deps
+    // basically it is the same stuff in current implementation.
+    symbolic_variables = symdeps.size();
+
     // @Info(alekum): We can get partially symbolic expression,
     // so that we have to be sure that we turn everything into fully
     // symbolic
@@ -395,6 +394,7 @@ void Solver::syncConstraints(ExprRef e) {
     for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
         for (const auto it : tree->getDependencies()) {
             if (!symdeps.count(it)) {
+                ++concretized_variables;
                 symcc::cachedReadExpressions[it]->concretize();
             }
         }
@@ -407,12 +407,14 @@ void Solver::syncConstraints(ExprRef e) {
             std::cerr << "Processing ... " << node->toString() << std::endl;
             if (node->isConcrete()) {
                 std::cerr << "\t\tSkipppp ^^^^^\n";
+                ++skipped_constraints;
                 continue;
             }
             std::cerr << "\t\t Taken, add to solverrr ^^^^^\n";
 
             if (isRelational(node.get())) {
                 addToSolver(node, true);
+                ++added_constraints;
             } else {
                 // Process range-based constraints
                 bool valid = false;
@@ -421,6 +423,7 @@ void Solver::syncConstraints(ExprRef e) {
                     ExprRef expr_range = getRangeConstraint(node, i);
                     if (expr_range != NULL) {
                         addToSolver(expr_range, true);
+                        ++added_constraints;
                         valid = true;
                     }
                 }
@@ -536,19 +539,28 @@ void Solver::negatePath(ExprRef e, bool taken) {
               << " }\n";
 
     addToSolver(e, !taken);
+    ++added_constraints;
     bool sat = checkAndSave();
-#if 1
-    std::cerr << "====================== Z3 MODEL ===================\n";
-    std::cerr << "Model Size :: " << solver_.get_model().size() << '\n';
-    std::cerr << solver_.to_smt2() << std::endl;
-    std::cerr << "====================== Z3 MODEL ===================\n";
-#endif
     if (!sat) {
         reset();
         // optimistic solving
         addToSolver(e, !taken);
         checkAndSave("optimistic");
+        ++num_of_unsat;
     }
+// @Cleanup(alekum 26/10/2022) Here we should print per solve stat...
+// and reset counters...
+#if 1
+    std::cerr << "====================== Z3 MODEL ===================\n";
+    std::cerr << "Skipped    :: " << skipped_constraints << '\n';
+    std::cerr << "Added      :: " << added_constraints << '\n';
+    std::cerr << "S_Vars     :: " << symbolic_variables << '\n';
+    std::cerr << "C_Vars     :: " << concretized_variables << '\n';
+    std::cerr << solver_.to_smt2() << std::endl;
+    std::cerr << "====================== Z3 MODEL ===================\n";
+    skipped_constraints = added_constraints = symbolic_variables =
+        concretized_variables = 0;
+#endif
 }
 
 void Solver::solveOne(z3::expr z3_expr) {
