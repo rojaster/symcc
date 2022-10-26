@@ -70,17 +70,6 @@ Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
     solver_.set(p);
 }
 
-// Solver::~Solver() {
-//     // @TODO(alekum 26/10/2022) print_stats?
-//     std::cerr << "{ \"Stats\" : {\n"
-//               << "\t \"num_generated\" : " << num_generated_ << ","
-//               << "\t \"num_of_unsat\" : " << num_of_unsat << ","
-//               << "\t \"num_of_sat\" : " << num_of_sat << ","
-//               << "\t \"num_of_negated_paths\" : " << num_of_negated_paths
-//               << "\n}\n";
-//     std::cerr << std::endl;
-// }
-
 void Solver::push() { solver_.push(); }
 
 void Solver::reset() { solver_.reset(); }
@@ -156,8 +145,6 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
                   << std::endl;
 #endif
         negatePath(e, taken);
-        ++num_of_negated_paths;
-        num_of_sat = num_of_negated_paths - num_of_unsat;
     }
     addConstraint(e, taken, is_interesting);
 
@@ -521,9 +508,9 @@ bool Solver::isInterestingJcc([[maybe_unused]] ExprRef rel_expr, bool taken,
 void Solver::negatePath(ExprRef e, bool taken) {
     reset();
 
-    auto start = std::chrono::steady_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     syncConstraints(e);
-    auto end = std::chrono::steady_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     std::cerr << "SMT :{ \"sync_constraints_time\" : " << elapsed.count()
               << " }\n";
@@ -536,7 +523,6 @@ void Solver::negatePath(ExprRef e, bool taken) {
         // optimistic solving
         addToSolver(e, !taken);
         checkAndSave("optimistic");
-        ++num_of_unsat;
     }
 // @Cleanup(alekum 26/10/2022) Here we should print per solve stat...
 // and reset counters...

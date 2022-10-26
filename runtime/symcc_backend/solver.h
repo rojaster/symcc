@@ -66,13 +66,6 @@ class Solver {
     // stats to be printed in print_stats method
     // turn into Solver::Stats?
     uint32_t num_generated_;
-    // should we keep track of interesting pc so far?
-    uint32_t num_of_negated_paths;
-    uint32_t num_of_unsat;
-    // num_of_sat = num_of_negated_paths - num_of_unsat
-    uint32_t num_of_sat;
-
-    // stats per solve ...
     uint32_t skipped_constraints;
     uint32_t added_constraints;
     uint32_t symbolic_variables;
