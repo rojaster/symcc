@@ -6,17 +6,6 @@
 namespace symcc {
 
 namespace {
-
-const
-
-    std::string
-    toString6digit(int32_t val) {
-    char buf[7]; // ndigit + 1
-    snprintf(buf, 7, "%06d", val);
-    buf[6] = '\0';
-    return std::string(buf);
-}
-
 void parseConstSym(ExprRef e, Kind& op, ExprRef& expr_sym,
                    ExprRef& expr_const) {
     for (int32_t i = 0; i < 2; i++) {
@@ -304,13 +293,14 @@ void Solver::saveValues(const std::string& postfix) {
         printValues(values);
         return;
     }
-
-    std::string fname = out_dir_ + "/" + toString6digit(num_generated_);
+    std::ostringstream fname;
+    fname << out_dir_ << '/' << std::setw(6) << std::setfill('0')
+          << num_generated_;
     // Add postfix to record where it is genereated
     if (!postfix.empty())
-        fname = fname + "-" + postfix;
-    std::ofstream of(fname, std::ofstream::out | std::ofstream::binary);
-    LOG_INFO("New testcase: " + fname + "\n");
+        fname << '-' << postfix;
+    std::ofstream of(fname.str(), std::ofstream::out | std::ofstream::binary);
+    std::cerr << "[INFO] New testcase: " << fname.str() << std::endl;
     if (of.fail()) {
         perror("Unable to open a file to write results\n");
         of.close();
@@ -551,13 +541,13 @@ void Solver::negatePath(ExprRef e, bool taken) {
 // @Cleanup(alekum 26/10/2022) Here we should print per solve stat...
 // and reset counters...
 #if 1
-    std::cerr << "====================== Z3 MODEL ===================\n";
-    std::cerr << "Skipped    :: " << skipped_constraints << '\n';
-    std::cerr << "Added      :: " << added_constraints << '\n';
-    std::cerr << "S_Vars     :: " << symbolic_variables << '\n';
-    std::cerr << "C_Vars     :: " << concretized_variables << '\n';
-    std::cerr << solver_.to_smt2() << std::endl;
-    std::cerr << "====================== Z3 MODEL ===================\n";
+    std::cerr << "====================== Z3 MODEL ===================\n"
+              << "Skipped :: " << std::dec << skipped_constraints << '\n'
+              << "Added   :: " << std::dec << added_constraints << '\n'
+              << "S_Vars  :: " << std::dec << symbolic_variables << '\n'
+              << "C_Vars  :: " << std::dec << concretized_variables << '\n'
+              << solver_.to_smt2() << '\n'
+              << "====================== Z3 MODEL ===================\n";
     skipped_constraints = added_constraints = symbolic_variables =
         concretized_variables = 0;
 #endif
