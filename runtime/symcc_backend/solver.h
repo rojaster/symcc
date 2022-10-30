@@ -44,11 +44,6 @@ class Solver {
     uint8_t getInput(ADDRINT index);
     ADDRINT last_pc() { return last_pc_; }
 
-    // @Cleanup(alekum 26/10/2022):
-    // We wanna be generic as much as possible, though
-    // let's keep it simple first
-    void print_stats(std::ostream& os);
-
   protected:
     std::string input_file_;
     std::vector<uint8_t> inputs_;
@@ -66,15 +61,21 @@ class Solver {
     // stats to be printed in print_stats method
     // turn into Solver::Stats?
     uint32_t num_generated_;
+    std::chrono::duration<double> solver_check_time_;
+    std::chrono::duration<double> sync_constraints_time_;
     uint32_t skipped_constraints;
     uint32_t added_constraints;
     uint32_t symbolic_variables;
-    uint32_t concretized_variables;
+    uint32_t concrete_variables;
     /// ------------------- end Solver::Stats
 
     std::vector<uint8_t> getConcreteValues();
     void saveValues(const std::string& postfix);
     void printValues(const std::vector<uint8_t>& values);
+    // @Cleanup(alekum 26/10/2022):
+    // We wanna be generic as much as possible, though
+    // let's keep it simple first - consider to write to file, to screen
+    void saveStats() noexcept;
 
     z3::expr getPossibleValue(z3::expr& z3_expr);
     z3::expr getMinValue(z3::expr& z3_expr);

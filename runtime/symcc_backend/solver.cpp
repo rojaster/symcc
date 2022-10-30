@@ -1,7 +1,9 @@
 #include "solver.h"
 #include <byteswap.h>
 #include <chrono>
+#include <fstream>
 #include <set>
+#include <sstream>
 
 namespace symcc {
 
@@ -72,7 +74,13 @@ Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
 
 void Solver::push() { solver_.push(); }
 
-void Solver::reset() { solver_.reset(); }
+void Solver::reset() {
+    solver_.reset();
+    skipped_constraints = 0;
+    added_constraints = 0;
+    symbolic_variables = 0;
+    concrete_variables = 0;
+}
 
 void Solver::pop() { solver_.pop(); }
 
@@ -87,8 +95,9 @@ z3::check_result Solver::check() {
         auto start = std::chrono::high_resolution_clock::now();
         res = solver_.check();
         auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
-        std::cerr << "SMT :{ \"solving_time\" : " << elapsed.count() << " }\n";
+        solver_check_time_ = end - start;
+        std::cerr << "SMT :{ \"solving_time\" : " << solver_check_time_.count()
+                  << " }\n";
     } catch (z3::exception& e) {
         // https://github.com/Z3Prover/z3/issues/419
         // timeout can cause exception
@@ -100,6 +109,7 @@ z3::check_result Solver::check() {
 bool Solver::checkAndSave(const std::string& postfix) {
     if (check() == z3::sat) {
         saveValues(postfix);
+        saveStats();
         return true;
     } else {
         std::cerr << ">> UNSAT\n";
@@ -140,10 +150,8 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc) {
     }
 
     if (is_interesting) {
-#if 1
-        std::cerr << "Interesting pc=0x" << std::hex << pc << ", negatePath;"
-                  << std::endl;
-#endif
+        // @Info(alekum 30/10/2022)
+        // Save PC as a part of saved stats?
         negatePath(e, taken);
     }
     addConstraint(e, taken, is_interesting);
@@ -260,6 +268,22 @@ std::vector<uint8_t> Solver::getConcreteValues() {
     return values;
 }
 
+void Solver::saveStats() noexcept {
+    std::ostringstream csv;
+    csv << num_generated_ - 1 << ',' << solver_check_time_.count() << ','
+        << sync_constraints_time_.count() << ',' << skipped_constraints << ','
+        << added_constraints << ',' << symbolic_variables << ','
+        << concrete_variables << std::endl;
+    std::ofstream stat_file("/tmp/stat.log",
+                            std::ios_base::out | std::ios_base::app);
+    if (stat_file.fail()) {
+        perror("Unable to open a stat file\n");
+        stat_file.close();
+        return;
+    }
+    stat_file << csv.str();
+}
+
 void Solver::saveValues(const std::string& postfix) {
     z3::model m = solver_.get_model();
     unsigned num_constants = m.num_consts();
@@ -286,7 +310,7 @@ void Solver::saveValues(const std::string& postfix) {
     // Add postfix to record where it is genereated
     if (!postfix.empty())
         fname << '-' << postfix;
-    std::ofstream of(fname.str(), std::ofstream::out | std::ofstream::binary);
+    std::ofstream of(fname.str(), std::ios_base::out | std::ios_base::binary);
     std::cerr << "[INFO] New testcase: " << fname.str() << std::endl;
     if (of.fail()) {
         perror("Unable to open a file to write results\n");
@@ -371,7 +395,7 @@ void Solver::syncConstraints(ExprRef e) {
     for (std::shared_ptr<DependencyTree<Expr>> tree : forest) {
         for (const auto it : tree->getDependencies()) {
             if (!symdeps.count(it)) {
-                ++concretized_variables;
+                ++concrete_variables;
                 symcc::cachedReadExpressions[it]->concretize();
             }
         }
@@ -511,32 +535,21 @@ void Solver::negatePath(ExprRef e, bool taken) {
     auto start = std::chrono::high_resolution_clock::now();
     syncConstraints(e);
     auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cerr << "SMT :{ \"sync_constraints_time\" : " << elapsed.count()
-              << " }\n";
+    sync_constraints_time_ = end - start;
+    std::cerr << "SMT :{ \"sync_constraints_time\" : "
+              << sync_constraints_time_.count() << " }\n";
 
     addToSolver(e, !taken);
     ++added_constraints;
+
     bool sat = checkAndSave();
-    if (!sat) {
+
+    if (!sat) { // optimistic solving
         reset();
-        // optimistic solving
         addToSolver(e, !taken);
+        ++added_constraints;
         checkAndSave("optimistic");
     }
-// @Cleanup(alekum 26/10/2022) Here we should print per solve stat...
-// and reset counters...
-#if 1
-    std::cerr << "====================== Z3 MODEL ===================\n"
-              << "Skipped :: " << std::dec << skipped_constraints << '\n'
-              << "Added   :: " << std::dec << added_constraints << '\n'
-              << "S_Vars  :: " << std::dec << symbolic_variables << '\n'
-              << "C_Vars  :: " << std::dec << concretized_variables << '\n'
-              << solver_.to_smt2() << '\n'
-              << "====================== Z3 MODEL ===================\n";
-    skipped_constraints = added_constraints = symbolic_variables =
-        concretized_variables = 0;
-#endif
 }
 
 void Solver::solveOne(z3::expr z3_expr) {
