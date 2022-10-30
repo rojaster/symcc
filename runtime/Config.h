@@ -30,6 +30,9 @@ struct Config {
     /// The input file, if any.
     std::string inputFile;
 
+    /// @brief Statistics log file
+    std::string statsFile = "stats.log";
+
     /// The file to log constraint solving information to.
     std::string logFile = "contraints.log";
 

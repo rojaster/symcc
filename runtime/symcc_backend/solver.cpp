@@ -61,8 +61,10 @@ void getCanonicalExpr(ExprRef e, ExprRef* canonical,
 } // namespace
 
 Solver::Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
+               const std::string log_file, const std::string stats_file,
                const std::string bitmap, unsigned kSolverTimeout)
-    : inputs_(ibuf), out_dir_(out_dir), context_(*g_z3_context),
+    : inputs_(ibuf), out_dir_(out_dir), log_file_(log_file),
+      stats_file_(stats_file), context_(*g_z3_context),
       solver_(z3::solver(context_, "QF_BV")), trace_(bitmap),
       last_interested_(false), syncing_(false), last_pc_(0),
       dep_forest_(ibuf.size() + 1), num_generated_(0) {
@@ -274,7 +276,7 @@ void Solver::saveStats() noexcept {
         << sync_constraints_time_.count() << ',' << skipped_constraints << ','
         << added_constraints << ',' << symbolic_variables << ','
         << concrete_variables << std::endl;
-    std::ofstream stat_file("/tmp/stat.log",
+    std::ofstream stat_file(stats_file_,
                             std::ios_base::out | std::ios_base::app);
     if (stat_file.fail()) {
         perror("Unable to open a stat file\n");

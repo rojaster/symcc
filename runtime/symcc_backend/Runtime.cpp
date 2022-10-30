@@ -179,7 +179,8 @@ void _sym_initialize(void) {
     // currently there are several Expr objects that uses context for their
     // purposes
     g_z3_context = new z3::context{};
-    g_solver = new Solver(input, g_config.outputDir, g_config.aflCoverageMap,
+    g_solver = new Solver(input, g_config.outputDir, g_config.logFile,
+                          g_config.statsFile, g_config.aflCoverageMap,
                           g_config.kSolverTimeout);
 
     // @Cleanup(alekum): this might be handled via factory. if builder is

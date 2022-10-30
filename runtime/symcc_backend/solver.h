@@ -22,6 +22,7 @@ extern z3::context* g_z3_context;
 class Solver {
   public:
     explicit Solver(const std::vector<uint8_t>& ibuf, const std::string out_dir,
+                    const std::string log_file, const std::string stats_file,
                     const std::string bitmap, unsigned kSolverTimeout);
     ~Solver() noexcept = default;
     Solver(const Solver&) = delete;
@@ -48,6 +49,8 @@ class Solver {
     std::string input_file_;
     std::vector<uint8_t> inputs_;
     std::string out_dir_;
+    std::string log_file_;
+    std::string stats_file_;
     z3::context& context_;
     z3::solver solver_;
     std::string session_;

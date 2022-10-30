@@ -65,6 +65,11 @@ void loadConfig() {
     if (inputFile != nullptr)
         g_config.inputFile = inputFile;
 
+    auto* statsFile = getenv("SYMCC_STATS_FILE");
+    if (statsFile != nullptr) {
+        g_config.statsFile = statsFile;
+    }
+
     auto* logFile = getenv("SYMCC_LOG_FILE");
     if (logFile != nullptr)
         g_config.logFile = logFile;
