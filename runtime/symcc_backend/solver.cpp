@@ -94,9 +94,9 @@ void Solver::add(z3::expr expr) {
 z3::check_result Solver::check() {
     z3::check_result res;
     try {
-        auto start = std::chrono::high_resolution_clock::now();
+        auto start = std::chrono::steady_clock::now();
         res = solver_.check();
-        auto end = std::chrono::high_resolution_clock::now();
+        auto end = std::chrono::steady_clock::now();
         solver_check_time_ = end - start;
         std::cerr << "SMT :{ \"solving_time\" : " << solver_check_time_.count()
                   << " }\n";
@@ -534,9 +534,9 @@ bool Solver::isInterestingJcc([[maybe_unused]] ExprRef rel_expr, bool taken,
 void Solver::negatePath(ExprRef e, bool taken) {
     reset();
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
     syncConstraints(e);
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
     sync_constraints_time_ = end - start;
     std::cerr << "SMT :{ \"sync_constraints_time\" : "
               << sync_constraints_time_.count() << " }\n";

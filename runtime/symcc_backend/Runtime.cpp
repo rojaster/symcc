@@ -446,7 +446,7 @@ void _sym_collect_garbage() {
         return;
 
 #ifdef DEBUG_RUNTIME
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::steady_clock::now();
 #endif
 
     auto reachableExpressions = collectReachableExpressions();
@@ -460,7 +460,7 @@ void _sym_collect_garbage() {
     }
 
 #ifdef DEBUG_RUNTIME
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
 
     std::cerr << "After garbage collection: " << allocatedExpressions.size()
               << " expressions remain" << std::endl
