@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
             printf("branch 2\n");
             if(str[2] + str[4] == 'X') printf("unrelated branch 1\n");
             if(str[4] + str[8] == 'X') printf("unrelated branch 2\n");
-            if(str[15] + str[18]) {
+            if(str[15] + str[18] == 'W') {
                 printf("branch 3\n");
                 if(str[5] + str[9] == 'X') printf("unrelated branch 3\n");
                 if(str[11] + str[24] == 'X') printf("unrelated branch 4\n");
