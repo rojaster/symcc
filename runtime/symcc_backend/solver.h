@@ -10,7 +10,6 @@
 
 #include "afl_trace_map.h"
 #include "expr.h"
-// #include "thread_context.h"
 #include "expr_builder.h"
 
 namespace symcc {

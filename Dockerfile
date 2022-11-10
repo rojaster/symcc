@@ -32,8 +32,8 @@ RUN apt-get update \
     python3 \
     python3-pip \
     zlib1g-dev \
+    pip3 install lit \
     && rm -rf /var/lib/apt/lists/*
-RUN pip3 install lit
 
 # Install Rust from rustup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -49,9 +49,6 @@ RUN git clone -b llvmorg-12.0.1 --depth 1 https://github.com/llvm/llvm-project.g
 
 # Build a version of SymCC with the simple backend to compile libc++
 COPY . /symcc_source
-
-# Init submodules if they are not initialiazed yet
-WORKDIR /symcc_source
 
 #
 # Build SymCC with the simple backend
