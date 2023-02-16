@@ -440,24 +440,25 @@ impl SymCC {
         }
     }
 
-    /// Try to extract the solver time from the logs produced by the Symcc
-    /// backend.
-    fn parse_solver_time(output: Vec<u8>) -> Option<Duration> {
-        let re = Regex::new(r#""solving_time": (\d+)"#).unwrap();
+    /// Try to extract the solver time from the logs produced by the Qsym
+    /// backend. Currently patterns we are interested are 'solving_time' or 'sync_constraints_time'
+    fn parse_solver_time(output: Vec<u8>, pattern: &str) -> Option<Duration> {
+        // @Info(alekum): This is the right RE to parse our format:
+        let re = Regex::new(&format!(r#""{}"\s*:\s*(\d+.?\d*)"#, pattern)).unwrap();
         output
             // split into lines
             .rsplit(|n| *n == b'\n')
-            // convert to string
+            // convert to string ( Why convert to str back as we convert from str->Vec[u8] before the call )??? )
             .filter_map(|s| str::from_utf8(s).ok())
             // check that it's an SMT log line
-            .filter(|s| s.trim_start().starts_with("[STAT] SMT:"))
+            .filter(|s| s.trim_start().starts_with("SMT :{"))
             // find the solving_time element
             .filter_map(|s| re.captures(s))
             // convert the time to an integer
-            .filter_map(|c| c[1].parse().ok())
+            .filter_map(|c| c[1].parse::<f64>().ok())
             // associate the integer with a unit
-            .map(Duration::from_micros)
-            // get the first one
+            .map(Duration::from_secs_f64)
+            // get the first one <-- in out case we should calculate total_solving_time = solving_time + ... + solving_time ...
             .next()
     }
 
@@ -561,7 +562,7 @@ impl SymCC {
             .map(|entry| entry.path())
             .collect();
 
-        let solver_time = SymCC::parse_solver_time(result.stderr);
+        let solver_time = SymCC::parse_solver_time(result.stderr, "solving_time");
         if solver_time.is_some() && solver_time.unwrap() > total_time {
             log::warn!("Backend reported inaccurate solver time!");
         }
@@ -610,18 +611,19 @@ mod tests {
 
     #[test]
     fn test_solver_time_parsing() {
-        let output = r#"[INFO] New testcase: /tmp/output/000005
-[STAT] SMT: { "solving_time": 14539, "total_time": 185091 }
-[STAT] SMT: { "solving_time": 14869 }
-[STAT] SMT: { "solving_time": 14869, "total_time": 185742 }
-[STAT] SMT: { "solving_time": 15106 }"#;
-
+        let output = r#"SMT :{ "sync_constraints_time" : 0.00359036 }
+SMT :{ "solving_time" : 0.0076401 }
+[INFO] New testcase: /tmp/output/000001"#;
         assert_eq!(
-            SymCC::parse_solver_time(output.as_bytes().to_vec()),
-            Some(Duration::from_micros(15106))
+            SymCC::parse_solver_time(output.as_bytes().to_vec(), "solving_time"),
+            Some(Duration::from_secs_f64(0.0076401))
         );
         assert_eq!(
-            SymCC::parse_solver_time("whatever".as_bytes().to_vec()),
+            SymCC::parse_solver_time(output.as_bytes().to_vec(), "sync_constraints_time"),
+            Some(Duration::from_secs_f64(0.00359036))
+        );
+        assert_eq!(
+            SymCC::parse_solver_time("whatever".as_bytes().to_vec(), "solving_time"),
             None
         );
     }

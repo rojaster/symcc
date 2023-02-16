@@ -13,6 +13,11 @@
 
 ## In Progress
 
+- [ ] Rust `symcc_fuzzing_helper` requires refining to confirm new changes
+    - [X] ~~Fix regular expression to parse `solving_time` properly~~
+    - [X] ~~Fix tests related to a parsing `solving_time` accordingly~~
+    - [ ] Check command timeout to run SymCC
+        - Timeout is not synchronized with solver timeout.
 - [ ] Fix a bug with invalidation of the symbolized/concretized expression
     - [ ] try option without invalidated, regenerate z3 expression each time
     - [ ] Invalidation should be either removed or re-checked(@see TODO expr.h::427)
@@ -24,6 +29,7 @@ ubuntu version, etc)
 
 
 ## Completed
+- [X] ~~Port tasex to AdaCC to integrate into FuzzBench~~
 - [X] ~~Add option to set up solver timeout in milliseconds, be aware no overflow detection for negative numbers~~
 - [X] ~~Add input data dependency tests~~
 - [X] ~~Experiment with quick symbolization/concretization phases~~
