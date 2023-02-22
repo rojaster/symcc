@@ -13,6 +13,10 @@
 
 ## In Progress
 
+- [ ] Add option to compile to use required `libSymRuntime.so` depends on TaSex or SymCC hack
+    - [ ] Check what libcxx linked against the binary for CXX targets
+        - [ ] Abandon experimental features from libcxx moving c++17+ ?
+    - [ ] Think about to bring flag to switch between tasex hack and pure approach, monitor will switch
 - [ ] Rust `symcc_fuzzing_helper` requires refining to confirm new changes
     - [X] ~~Fix regular expression to parse `solving_time` properly~~
     - [X] ~~Fix tests related to a parsing `solving_time` accordingly~~
