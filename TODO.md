@@ -1,36 +1,18 @@
 # TODO
 
-## Backlog
-
-- [ ] Experiment with LLVM Optimizations
-- [ ] Clean up code
-    - [ ] remove global cachedReadExpressions
-    - [ ] remove global allocatedExpressions
-    - [ ] clean up global namespace and organize symcc namespace properly
-    - [X] ~~remove obsolete includes(currently we can remove pin.H)~~
-    - [ ] Split h,cc files properly
-    - [ ] run and fix clang-tidy issues
-
 ## In Progress
+
+> DO NOT FORGET TO UPDATE CODE IN REGARD WITH ADACC updates from `fuzzbench-tasex`
 
 - [ ] Add option to compile to use required `libSymRuntime.so` depends on TaSex or SymCC hack
     - [ ] Check what libcxx linked against the binary for CXX targets
-        - [ ] Abandon experimental features from libcxx moving c++17+ ?
     - [ ] Think about to bring flag to switch between tasex hack and pure approach, monitor will switch
 - [ ] Rust `symcc_fuzzing_helper` requires refining to confirm new changes
-    - [X] ~~Fix regular expression to parse `solving_time` properly~~
-    - [X] ~~Fix tests related to a parsing `solving_time` accordingly~~
     - [ ] Check command timeout to run SymCC
         - Timeout is not synchronized with solver timeout.
 - [ ] Fix a bug with invalidation of the symbolized/concretized expression
     - [ ] try option without invalidated, regenerate z3 expression each time
     - [ ] Invalidation should be either removed or re-checked(@see TODO expr.h::427)
-- [ ] Update dependencies in Dockerfile(compiler, 
-ubuntu version, etc)
-    - [X] Use ubuntu 22.04 instead of 20.04
-    - [X] Use compilers: llvm-7,12 + gcc 11.2
-        - [ ] create new pass manager register hook because of llvm-13+(there is no LegacyPM anymore) 
-
 
 ## Completed
 - [X] ~~Port tasex to AdaCC to integrate into FuzzBench~~
@@ -48,3 +30,11 @@ ubuntu version, etc)
 - [x] ~~Introduce developer image with required dependencies~~
 - [x] ~~Introduce production image with binary only content~~
 - [X] ~~AFL -> AFL++~~
+- [X] ~~Update dependencies in Dockerfile(compiler, ubuntu version, etc)~~
+- [X] ~~Use ubuntu 22.04 instead of 20.04~~
+- [X] ~~Use compilers: llvm-7,12 + gcc 11.2~~
+- [X] ~~create new pass manager register hook because of llvm-13+(there is no LegacyPM anymore)~~
+- [X] ~~finish new pass manager integration in adacc part for fuzzbench experimentation~~
+- [X] ~~Abandon experimental features from libcxx and move to c++17+~~
+- [X] ~~Fix regular expression to parse `solving_time` properly~~
+- [X] ~~Fix tests related to a parsing `solving_time` accordingly~~
